@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dart Tracker Pro</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <section id="login-screen" class="active">
+            <div class="glass-panel">
+                <h1>Dart Tracker</h1>
+                <div class="input-group">
+                    <input type="text" id="username" placeholder="Benutzername">
+                    <input type="password" id="password" placeholder="Passwort">
+                    <input type="text" id="invite-code" placeholder="Invite Code (nur für Neu)" style="display:none;">
+                </div>
+                
+                <button class="btn-primary" onclick="login()">Login</button>
+                <button class="btn-secondary" id="toggle-auth" onclick="toggleAuthMode()">Account erstellen</button>
+            </div>
+        </section>
+
+        <section id="dashboard-screen" class="hidden">
+            <header class="user-header">
+                <h2 id="display-username">Spieler</h2>
+                <div class="xp-container">
+                    <div class="xp-info">
+                        <span id="display-level">Lvl 1</span>
+                        <span id="xp-text">0 / 1000 XP</span>
+                    </div>
+                    <div class="xp-bar-bg">
+                        <div class="xp-bar-fill" id="xp-bar"></div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="menu-grid">
+                <div class="menu-card disabled">
+                    <i class="fa-solid fa-trophy"></i>
+                    <h3>Games</h3>
+                    <p>Coming Soon</p>
+                </div>
+                <div class="menu-card disabled">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <h3>Stats</h3>
+                    <p>Coming Soon</p>
+                </div>
+                <div class="menu-card active" onclick="startQuickplay()">
+                    <i class="fa-solid fa-bullseye"></i>
+                    <h3>Quickplay</h3>
+                    <p>501 Single Out</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="game-screen" class="hidden">
+            <div class="scoreboard">
+                <div class="score-box">
+                    <span>SCORE</span>
+                    <h1 id="current-score">501</h1>
+                </div>
+                <div class="darts-history">
+                    <span id="last-throws">Letzte: - - -</span>
+                </div>
+            </div>
+
+            <div class="numpad-container">
+                <div class="numpad-grid">
+                    <button onclick="addScore(1)">1</button>
+                    <button onclick="addScore(2)">2</button>
+                    <button onclick="addScore(3)">3</button>
+                    <button onclick="addScore(4)">4</button>
+                    <button onclick="addScore(5)">5</button>
+                    <button onclick="addScore(6)">6</button>
+                    <button onclick="addScore(7)">7</button>
+                    <button onclick="addScore(8)">8</button>
+                    <button onclick="addScore(9)">9</button>
+                    <button class="special" onclick="addScore(0)">0</button>
+                    <button class="special action-del" onclick="clearInput()"><i class="fa-solid fa-delete-left"></i></button>
+                    <button class="special action-enter" onclick="submitTurn()">ENTER</button>
+                </div>
+                <div class="multiplier-controls">
+                     <button id="mod-d" onclick="toggleMod('D')">D (x2)</button>
+                    <button id="mod-t" onclick="toggleMod('T')">T (x3)</button>
+                    <div id="current-input-display">0</div>
+                </div>
+            </div>
+            
+            <button class="btn-text" onclick="exitGame()">Spiel verlassen</button>
+        </section>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
