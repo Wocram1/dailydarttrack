@@ -53,10 +53,7 @@ try {
     console.error("Fetch Fehler:", e);
     alert("Netzwerkfehler: " + e.message);
 }
-    } finally {
-        btn.disabled = false;
-        btn.innerText = isSignup ? 'Erstellen' : 'Login';
-    }
+ 
 
 
 // --- DASHBOARD ---
