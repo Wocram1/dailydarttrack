@@ -1,9 +1,5 @@
-/**
- * Dart Tracker Pro - Master Script
- */
-
 let currentUser = null;
-let isSignup = false; // Steuert den Registrierungs-Modus
+let isSignup = false;
 let currentMatchXP = 0;
 let dartCount = 0; 
 let throwHistory = []; 
@@ -18,74 +14,51 @@ let gameData = null;
 let currentGame = null; 
 let inputBuffer = "";
 
-// --- API ANBINDUNG ---
-async function apiCall(payload) {
+// --- AUTH ---
+function toggleAuthMode() {
+    isSignup = !isSignup;
+    const inviteEl = document.getElementById('invite-code');
+    const toggleBtn = document.getElementById('toggle-auth');
+    const mainBtn = document.querySelector('.btn-primary');
+    
+    if(inviteEl) inviteEl.style.display = isSignup ? 'block' : 'none';
+    if(toggleBtn) toggleBtn.innerText = isSignup ? 'Zurück zum Login' : 'Account erstellen';
+    if(mainBtn) mainBtn.innerText = isSignup ? 'Registrieren' : 'Login';
+}
+
+async function login() {
+    const userEl = document.getElementById('username');
+    const passEl = document.getElementById('password');
+    const codeEl = document.getElementById('invite-code');
+
+    if (!userEl || !passEl) return;
+
+    const user = userEl.value.trim();
+    const pass = passEl.value.trim();
+    const code = codeEl ? codeEl.value.trim() : "";
+
+    if (!user || !pass) {
+        alert("Bitte Daten eingeben.");
+        return;
+    }
+
     try {
         const res = await fetch('/api', {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify(payload),
-            redirect: 'follow'
+            body: JSON.stringify({ action: isSignup ? 'signup' : 'login', username: user, password: pass, inviteCode: code })
         });
-        if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
-        return await res.json();
-    } catch (e) {
-        console.error("API Error:", e);
-        throw e;
-    }
-}
-
-// --- AUTHENTIFIZIERUNG ---
-// Diese Funktion stellt sicher, dass man zwischen Login und Registrieren wechseln kann
-function toggleAuthMode() {
-    isSignup = !isSignup;
-    const inviteInput = document.getElementById('invite-code');
-    const toggleBtn = document.getElementById('toggle-auth');
-    const mainBtn = document.querySelector('.btn-primary');
-
-    if (isSignup) {
-        inviteInput.style.display = 'block';
-        toggleBtn.innerText = 'Zurück zum Login';
-        mainBtn.innerText = 'Registrieren';
-    } else {
-        inviteInput.style.display = 'none';
-        toggleBtn.innerText = 'Account erstellen';
-        mainBtn.innerText = 'Login';
-    }
-}
-
-async function login() {
-    const user = document.getElementById('username').value.trim();
-    const pass = document.getElementById('password').value.trim();
-    const code = document.getElementById('invite-code').value.trim();
-
-    if (!user || !pass) return alert("Bitte Daten eingeben.");
-
-    const btn = document.querySelector('.btn-primary');
-    btn.disabled = true;
-    btn.innerText = "Lade...";
-
-    try {
-        const data = await apiCall({ 
-            action: isSignup ? 'signup' : 'login', 
-            username: user, 
-            password: pass, 
-            inviteCode: code 
-        });
+        const data = await res.json();
 
         if (data.success) {
             currentUser = data.user;
-            if (typeof currentUser.stats === 'string') currentUser.stats = JSON.parse(currentUser.stats);
             showScreen('dashboard-screen');
             updateDashboard();
         } else {
-            alert(data.message || "Fehler beim Login");
+            alert(data.message);
         }
     } catch (e) {
-        alert("Verbindungsfehler! Code 01");
-    } finally {
-        btn.disabled = false;
-        btn.innerText = isSignup ? 'Registrieren' : 'Login';
+        alert("Verbindungsfehler!");
     }
 }
 
@@ -100,7 +73,6 @@ function showCategoryMenu() { showScreen('category-screen'); }
 function showSubGameMenu(category) {
     const list = document.getElementById('game-list');
     list.innerHTML = '';
-    
     if (category === 'boardControl') {
         Object.keys(BoardControlGames).forEach(key => {
             const game = BoardControlGames[key];
@@ -127,42 +99,6 @@ function showLevelSelect(gameKey) {
     showScreen('level-select-screen');
 }
 
-// --- DASHBOARD ---
-function updateDashboard() {
-    if (!currentUser) return;
-    document.getElementById('display-username').innerText = currentUser.username;
-    const level = parseInt(currentUser.level) || 1;
-    const xp = parseInt(currentUser.xp) || 0;
-    const nextLevelXP = level * 1000;
-    const progress = (xp / nextLevelXP) * 100;
-
-    document.getElementById('display-level').innerText = `Lvl ${level}`;
-    document.getElementById('xp-text').innerText = `${xp} / ${nextLevelXP} XP`;
-    document.getElementById('xp-bar').style.width = `${Math.min(progress, 100)}%`;
-}
-
-// --- 501 QUICKPLAY LOGIK ---
-function startQuickplay() {
-    currentGame = '501';
-    gameState.score = 501;
-    gameState.sessionStats = { throws: 0, hits_1: 0, hits_2: 0, hits_3: 0, doubles: 0, triples: 0 };
-    throwHistory = [];
-    currentMatchXP = 0;
-    dartCount = 0;
-    clearInput();
-    updateGameUI();
-    updateDartIcons('dart-'); 
-    showScreen('game-screen');
-}
-
-// Numpad Funktion für 501
-function addScore(num) {
-    if (inputBuffer.length < 3) {
-        inputBuffer += num;
-        updateInputDisplay();
-    }
-}
-
 // --- ATC LOGIK ---
 function startAtc(level) {
     currentGame = 'atc';
@@ -178,13 +114,8 @@ function atcHit(type) {
     gameData.dartsThisRound++;
     gameData.dartsThrownThisTarget++;
 
-    const entry = {
-        target: gameData.target,
-        type: type,
-        xp: BoardControlGames.atc.calculateXP(type, gameData.dartsThisRound, false)
-    };
-    gameData.history.push(entry);
-    currentMatchXP += entry.xp;
+    const xp = BoardControlGames.atc.calculateXP(type, gameData.dartsThisRound, false);
+    currentMatchXP += xp;
 
     if (isHit) {
         gameData.hitsCollected++;
@@ -205,7 +136,10 @@ function atcHit(type) {
         }
     }
     updateAtcUI();
-    if (gameData.target > 20) finishGame("ATC");
+    if (gameData.target > 20) {
+        alert("Sieg! +" + currentMatchXP + " XP");
+        showScreen('dashboard-screen');
+    }
 }
 
 function nextAtcRound() {
@@ -226,43 +160,20 @@ function updateAtcUI() {
             hContainer.innerHTML += '<i class="fa-solid fa-heart"></i>';
         }
     }
-    updateDartIcons('atc-dart-');
-}
-
-// --- GEMEINSAME HELPER ---
-function updateDartIcons(prefix) {
-    const count = (currentGame === 'atc') ? gameData.dartsThisRound : dartCount;
+    // Darts
     for (let i = 1; i <= 3; i++) {
-        const el = document.getElementById(`${prefix}${i}`);
-        if (el) el.classList.toggle('spent', i <= count);
+        document.getElementById(`atc-dart-${i}`).classList.toggle('spent', i <= gameData.dartsThisRound);
     }
 }
 
-function clearInput() {
-    inputBuffer = "";
-    gameState.multiplier = 1;
-    updateInputDisplay();
-}
+function exitGame() { if(confirm("Abbrechen?")) showScreen('dashboard-screen'); }
 
-function updateInputDisplay() {
-    const display = document.getElementById('current-input-display');
-    if (display && currentGame === '501') {
-        let p = gameState.multiplier === 2 ? "D" : (gameState.multiplier === 3 ? "T" : "");
-        display.innerText = p + (inputBuffer || "0");
-    }
-}
-
-function updateGameUI() {
-    if (currentGame === '501') document.getElementById('current-score').innerText = gameState.score;
-}
-
-function exitGame() {
-    if (confirm("Spiel abbrechen?")) showScreen('dashboard-screen');
-}
-
-async function finishGame(mode) {
-    alert(`Spiel beendet! +${currentMatchXP} XP`);
-    // API Call hier...
-    showScreen('dashboard-screen');
-    updateDashboard();
+function updateDashboard() {
+    if (!currentUser) return;
+    document.getElementById('display-username').innerText = currentUser.username;
+    const level = parseInt(currentUser.level) || 1;
+    const xp = parseInt(currentUser.xp) || 0;
+    document.getElementById('display-level').innerText = `Lvl ${level}`;
+    document.getElementById('xp-text').innerText = `${xp} / ${level * 1000} XP`;
+    document.getElementById('xp-bar').style.width = `${(xp / (level * 1000)) * 100}%`;
 }

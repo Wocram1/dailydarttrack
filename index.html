@@ -20,8 +20,10 @@
                 <div class="input-group">
                     <input type="text" id="username" placeholder="Benutzername">
                     <input type="password" id="password" placeholder="Passwort">
+                    <input type="text" id="invite-code" placeholder="Einladungscode" style="display: none;">
                 </div>
                 <button class="btn-primary" onclick="login()">Login</button>
+                <button id="toggle-auth" class="btn-secondary" onclick="toggleAuthMode()">Account erstellen</button>
             </div>
         </section>
 
@@ -70,8 +72,7 @@
                 <button class="back-btn" onclick="showScreen('category-screen')"><i class="fa-solid fa-chevron-left"></i></button>
                 <h2 id="subgame-title">Board Control</h2>
             </div>
-            <div class="game-list" id="game-list">
-                </div>
+            <div class="game-list" id="game-list"></div>
         </section>
 
         <section id="level-select-screen" class="hidden">
@@ -79,14 +80,13 @@
                 <button class="back-btn" onclick="showScreen('subgame-screen')"><i class="fa-solid fa-chevron-left"></i></button>
                 <h2>Schwierigkeit</h2>
             </div>
-            <div class="level-grid" id="level-grid">
-                </div>
+            <div class="level-grid" id="level-grid"></div>
         </section>
 
         <section id="atc-game-screen" class="hidden">
             <div class="game-header">
                 <button class="exit-btn" onclick="exitGame()"><i class="fa-solid fa-xmark"></i></button>
-                <div class="round-counter">Aufnahme: <span id="atc-rounds">1</span></div>
+                <div class="round-counter">Runde: <span id="atc-rounds">1</span></div>
                 <div class="heart-container" id="atc-hearts"></div>
                 <div class="dart-indicators">
                     <i class="fa-solid fa-location-arrow dart-icon" id="atc-dart-1"></i>
@@ -94,17 +94,13 @@
                     <i class="fa-solid fa-location-arrow dart-icon" id="atc-dart-3"></i>
                 </div>
             </div>
-
             <div class="atc-scoreboard">
                 <div class="target-display">
-                    <span id="atc-target-label">ZIEL</span>
+                    <span>ZIEL</span>
                     <h1 id="atc-current-target">1</h1>
                 </div>
-                <div class="board-preview">
-                    <div id="board-highlight"></div>
-                </div>
+                <div class="board-preview"></div>
             </div>
-
             <div class="atc-controls">
                 <div class="atc-input-grid">
                     <button class="atc-btn hit-btn" onclick="atcHit('S')">S-<span class="target-val">1</span></button>
@@ -118,10 +114,22 @@
         </section>
 
         <section id="game-screen" class="hidden">
+            <div class="game-header">
+                <button class="exit-btn" onclick="exitGame()"><i class="fa-solid fa-xmark"></i></button>
+                <div class="dart-indicators">
+                    <i class="fa-solid fa-location-arrow dart-icon" id="dart-1"></i>
+                    <i class="fa-solid fa-location-arrow dart-icon" id="dart-2"></i>
+                    <i class="fa-solid fa-location-arrow dart-icon" id="dart-3"></i>
+                </div>
+            </div>
+            <div class="score-display">
+                <h1 id="current-score">501</h1>
+                <div id="current-input-display">0</div>
+            </div>
             </section>
     </div>
 
-    <script src="boardControl.js"></script> 
+    <script src="boardControl.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
