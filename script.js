@@ -1,14 +1,9 @@
-/**
- * Dart Tracker Pro - Frontend Logic
- * Expert Version: Fixes CORS, handles granular throw tracking & XP
- */
-
 let currentUser = null;
 let isSignup = false;
 let currentMatchXP = 0;
-let dartCount = 0; // Trackt den aktuellen Dart (1, 2 oder 3)
+let dartCount = 0; 
+let throwHistory = []; 
 
-// Game State Management
 let gameState = {
     score: 501,
     multiplier: 1,
@@ -17,18 +12,14 @@ let gameState = {
 
 let inputBuffer = "";
 
-// --- CENTRAL API WRAPPER (Der CORS-Killer) ---
-
 async function apiCall(payload) {
     try {
         const res = await fetch('/api', {
             method: 'POST',
-            // Wir verwenden text/plain, um den Browser-Preflight zu umgehen (CORS-Optimierung)
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify(payload),
             redirect: 'follow'
         });
-
         if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
         return await res.json();
     } catch (e) {
@@ -36,8 +27,6 @@ async function apiCall(payload) {
         throw e;
     }
 }
-
-// --- AUTHENTICATION ---
 
 function toggleAuthMode() {
     isSignup = !isSignup;
@@ -51,70 +40,64 @@ async function login() {
     const pass = document.getElementById('password').value.trim();
     const code = document.getElementById('invite-code').value.trim();
 
-    if (!user || !pass) {
-        alert("Bitte Daten eingeben.");
-        return;
-    }
+    if (!user || !pass) return alert("Daten eingeben.");
 
     const btn = document.querySelector('.btn-primary');
     btn.disabled = true;
     btn.innerText = "Lade...";
 
-    const payload = { 
-        action: isSignup ? 'signup' : 'login', 
-        username: user, 
-        password: pass, 
-        inviteCode: code 
-    };
-
     try {
-        const data = await apiCall(payload);
+        const data = await apiCall({ 
+            action: isSignup ? 'signup' : 'login', 
+            username: user, password: pass, inviteCode: code 
+        });
 
         if (data.success) {
             currentUser = data.user;
-            if (typeof currentUser.stats === 'string') {
-                currentUser.stats = JSON.parse(currentUser.stats);
-            }
+            if (typeof currentUser.stats === 'string') currentUser.stats = JSON.parse(currentUser.stats);
             showScreen('dashboard-screen');
             updateDashboard();
         } else {
-            alert(data.message || "Fehler beim Login");
+            alert(data.message);
         }
     } catch (e) {
-        alert("Verbindungsfehler. Bitte prüfe deine Netlify-Config.");
+        alert("Fehler!");
     } finally {
         btn.disabled = false;
         btn.innerText = isSignup ? 'Registrieren' : 'Login';
     }
 }
 
-// --- DASHBOARD ---
-
 function updateDashboard() {
     if (!currentUser) return;
-
     document.getElementById('display-username').innerText = currentUser.username;
-    
     const level = parseInt(currentUser.level) || 1;
     const xp = parseInt(currentUser.xp) || 0;
     const nextLevelXP = level * 1000;
     const progress = (xp / nextLevelXP) * 100;
 
-    document.getElementById('display-level').innerText = `Level ${level}`;
+    document.getElementById('display-level').innerText = `Lvl ${level}`;
     document.getElementById('xp-text').innerText = `${xp} / ${nextLevelXP} XP`;
     document.getElementById('xp-bar').style.width = `${Math.min(progress, 100)}%`;
 }
 
-// --- GAME LOGIC ---
-
 function startQuickplay() {
     gameState.score = 501;
     gameState.sessionStats = { throws: 0, hits_1: 0, hits_2: 0, hits_3: 0, doubles: 0, triples: 0 };
+    throwHistory = [];
     currentMatchXP = 0;
     dartCount = 0;
+    setMod(1);
     clearInput();
     updateGameUI();
+    updateDartIcons();
     showScreen('game-screen');
+}
+
+function setMod(m) {
+    gameState.multiplier = m;
+    document.querySelectorAll('.mod-btn').forEach((b, i) => b.classList.toggle('active', i === m-1));
+    updateInputDisplay();
 }
 
 function addScore(num) {
@@ -124,122 +107,96 @@ function addScore(num) {
     }
 }
 
-function toggleMod(type) {
-    const btnD = document.getElementById('mod-d');
-    const btnT = document.getElementById('mod-t');
-
-    if (type === 'D') {
-        gameState.multiplier = (gameState.multiplier === 2) ? 1 : 2;
-        btnT.classList.remove('active');
-        btnD.classList.toggle('active', gameState.multiplier === 2);
-    } else {
-        gameState.multiplier = (gameState.multiplier === 3) ? 1 : 3;
-        btnD.classList.remove('active');
-        btnT.classList.toggle('active', gameState.multiplier === 3);
-    }
-    updateInputDisplay();
-}
-
 function submitTurn() {
-    // Auch wenn 0 eingegeben wurde (Miss), tracken wir den Wurf
     const val = parseInt(inputBuffer) || 0;
     const points = val * gameState.multiplier;
 
-    // Validierung
     if (points > 60 || (val > 20 && val !== 25 && val !== 50)) {
-        alert("Ungültiger Score!");
+        alert("Ungültig!");
         clearInput();
         return;
     }
 
-    // Bust Check
     if (gameState.score - points < 0 || gameState.score - points === 1) {
         alert("BUST!");
-        dartCount = 0; // Runde beendet nach Bust
+        dartCount = 0;
     } else {
         gameState.score -= points;
         trackDart(points, gameState.multiplier);
     }
 
     clearInput();
+    setMod(1);
     updateGameUI();
-
-    if (gameState.score === 0) {
-        finishGame();
-    }
+    if (gameState.score === 0) finishGame();
 }
 
 function trackDart(points, mult) {
-    dartCount++;
-    gameState.sessionStats.throws++;
-    
-    // Tracke welcher Dart der Runde getroffen hat
-    if (points > 0) {
-        gameState.sessionStats[`hits_${dartCount}`]++;
-    }
-    
-    if (mult === 2) gameState.sessionStats.doubles++;
-    if (mult === 3) gameState.sessionStats.triples++;
-
-    // XP Logik
-    let gain = 5; 
+    let gain = 5;
     if (points >= 40) gain += 10;
     if (points >= 60) gain += 20;
-    if (points === 180) gain += 100; // Bonus für Maximum (theoretisch)
-    
+
+    throwHistory.push({ points, mult, xp: gain, dartNum: dartCount + 1 });
+
+    dartCount++;
+    gameState.sessionStats.throws++;
+    if (points > 0) gameState.sessionStats[`hits_${dartCount}`]++;
+    if (mult === 2) gameState.sessionStats.doubles++;
+    if (mult === 3) gameState.sessionStats.triples++;
     currentMatchXP += gain;
 
-    if (dartCount >= 3) dartCount = 0; // Reset für nächste Aufnahme
+    updateDartIcons();
+    if (dartCount >= 3) {
+        setTimeout(() => { dartCount = 0; updateDartIcons(); }, 800);
+    }
+}
+
+function undoLastThrow() {
+    if (throwHistory.length === 0) return;
+    const last = throwHistory.pop();
+    gameState.score += last.points;
+    gameState.sessionStats.throws--;
+    if (last.points > 0) gameState.sessionStats[`hits_${last.dartNum}`]--;
+    if (last.mult === 2) gameState.sessionStats.doubles--;
+    if (last.mult === 3) gameState.sessionStats.triples--;
+    currentMatchXP -= last.xp;
+    dartCount = (dartCount === 0) ? 2 : last.dartNum - 1;
+    updateGameUI();
+    updateDartIcons();
+}
+
+function updateDartIcons() {
+    for (let i = 1; i <= 3; i++) {
+        document.getElementById(`dart-${i}`).classList.toggle('spent', i <= dartCount);
+    }
 }
 
 function updateInputDisplay() {
-    let prefix = gameState.multiplier === 2 ? "D" : (gameState.multiplier === 3 ? "T" : "");
-    document.getElementById('current-input-display').innerText = prefix + (inputBuffer || "0");
+    let p = gameState.multiplier === 2 ? "D" : (gameState.multiplier === 3 ? "T" : "");
+    document.getElementById('current-input-display').innerText = p + (inputBuffer || "0");
 }
 
-function clearInput() {
-    inputBuffer = "";
-    gameState.multiplier = 1;
-    document.getElementById('mod-d').classList.remove('active');
-    document.getElementById('mod-t').classList.remove('active');
-    updateInputDisplay();
-}
+function clearInput() { inputBuffer = ""; updateInputDisplay(); }
 
-function updateGameUI() {
-    document.getElementById('current-score').innerText = gameState.score;
-}
+function updateGameUI() { document.getElementById('current-score').innerText = gameState.score; }
 
 async function finishGame() {
     alert(`Leg beendet! +${currentMatchXP} XP`);
-    
-    const payload = {
-        action: 'saveMatch',
-        username: currentUser.username,
-        xp_gain: currentMatchXP,
-        match_stats: gameState.sessionStats
-    };
-
-    try {
-        const data = await apiCall(payload);
-        if (data.success) {
-            currentUser.xp = data.newXP;
-            currentUser.level = data.newLevel;
-        }
-    } catch (e) {
-        console.error("Fehler beim Speichern");
+    const data = await apiCall({ 
+        action: 'saveMatch', username: currentUser.username, 
+        xp_gain: currentMatchXP, match_stats: gameState.sessionStats 
+    });
+    if (data.success) {
+        currentUser.xp = data.newXP;
+        currentUser.level = data.newLevel;
     }
-
     showScreen('dashboard-screen');
     updateDashboard();
 }
-
-// --- NAVIGATION ---
 
 function showScreen(id) {
     document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
     document.getElementById(id).classList.remove('hidden');
 }
 
-function exitGame() {
-    if (confirm("Spiel abbrechen?")) showScreen('dashboard-screen');
-}
+function exitGame() { if (confirm("Spiel abbrechen?")) showScreen('dashboard-screen'); }
