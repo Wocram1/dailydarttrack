@@ -50,7 +50,7 @@ async function login() {
 
     try {
         // Der Request geht an den Netlify Proxy /api/
-        const res = await fetch('/api/', {
+        const res = await fetch('/api', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
