@@ -1,112 +1,146 @@
-// script.js
+/**
+ * Dart Tracker Pro - Frontend Logic
+ * Expert Version: Robust Error Handling & Modular Design
+ */
+
 let currentUser = null;
+let isSignup = false;
+let currentMatchXP = 0;
+
+// Game State Management
 let gameState = {
     score: 501,
+    multiplier: 1,
     history: [],
-    currentTurn: [],
-    multiplier: 1 // 1=Single, 2=Double, 3=Triple
+    sessionStats: { throws: 0, hits_1: 0, hits_2: 0, hits_3: 0, doubles: 0, triples: 0 }
 };
 
+let inputBuffer = "";
+
 // --- AUTHENTICATION ---
-let isSignup = false;
 
 function toggleAuthMode() {
     isSignup = !isSignup;
     document.getElementById('invite-code').style.display = isSignup ? 'block' : 'none';
     document.getElementById('toggle-auth').innerText = isSignup ? 'Zurück zum Login' : 'Account erstellen';
-    document.querySelector('.btn-primary').innerText = isSignup ? 'Erstellen' : 'Login';
+    document.querySelector('.btn-primary').innerText = isSignup ? 'Registrieren' : 'Login';
 }
 
 async function login() {
-    const user = document.getElementById('username').value;
-    const pass = document.getElementById('password').value;
-    const code = document.getElementById('invite-code').value;
+    const user = document.getElementById('username').value.trim();
+    const pass = document.getElementById('password').value.trim();
+    const code = document.getElementById('invite-code').value.trim();
 
-    if (!user || !pass) return alert("Bitte Felder ausfüllen");
+    if (!user || !pass) {
+        alert("Bitte Benutzernamen und Passwort eingeben.");
+        return;
+    }
 
     const btn = document.querySelector('.btn-primary');
     btn.disabled = true;
-    btn.innerText = "Lade...";
+    btn.innerText = "Verbindung wird hergestellt...";
 
     const action = isSignup ? 'signup' : 'login';
-    const payload = { action, username: user, password: pass, inviteCode: code };
+    const payload = { 
+        action: action, 
+        username: user, 
+        password: pass, 
+        inviteCode: code 
+    };
 
-    // Ersetze den entsprechenden Teil in deiner login() Funktion:
-try {
-    const res = await fetch('/api/', {
-        method: 'POST',
-        body: JSON.stringify(payload)
-    });
-    
-    const data = await res.json();
-    console.log("Server Antwort:", data); // Schau in die F12 Konsole!
+    try {
+        // Der Request geht an den Netlify Proxy /api/
+        const res = await fetch('/api/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
 
-    if (data.success) {
-        currentUser = data.user;
-        showScreen('dashboard-screen');
-        updateDashboard();
-    } else {
-        // Falls 'message' fehlt, zeige das ganze Objekt als Text oder einen Standardfehler
-        alert(data.message || data.error || "Ein unbekannter Serverfehler ist aufgetreten.");
+        // Falls der Proxy einen Fehler wirft (z.B. 404 oder 500)
+        if (!res.ok) {
+            throw new Error(`Server-Antwort war nicht OK: ${res.status}`);
+        }
+
+        const data = await res.json();
+        console.log("Backend Response:", data);
+
+        if (data.success) {
+            currentUser = data.user;
+            // Falls stats noch als String kommen, parsen
+            if (typeof currentUser.stats === 'string') {
+                currentUser.stats = JSON.parse(currentUser.stats);
+            }
+            showScreen('dashboard-screen');
+            updateDashboard();
+        } else {
+            // Zeigt die spezifische Fehlermeldung vom Google Script (z.B. "Falscher Invite Code")
+            alert("Fehler: " + (data.message || "Unbekannter Fehler"));
+        }
+    } catch (e) {
+        console.error("Auth Error:", e);
+        alert("Verbindungsfehler: " + e.message + "\n\nBitte prüfe, ob die URL in deiner netlify.toml aktuell ist.");
+    } finally {
+        btn.disabled = false;
+        btn.innerText = isSignup ? 'Registrieren' : 'Login';
     }
-} catch (e) {
-    console.error("Fetch Fehler:", e);
-    alert("Netzwerkfehler: " + e.message);
 }
- 
-
 
 // --- DASHBOARD ---
+
 function updateDashboard() {
+    if (!currentUser) return;
+
     document.getElementById('display-username').innerText = currentUser.username;
-    document.getElementById('display-level').innerText = `Lvl ${currentUser.level}`;
     
-    // XP Berechnung (Level * 1000 als Basis)
-    const nextLevelXP = currentUser.level * 1000;
-    const progress = (currentUser.xp / nextLevelXP) * 100;
-    
-    document.getElementById('xp-text').innerText = `${currentUser.xp} / ${nextLevelXP} XP`;
+    // Level & XP Logik
+    const level = parseInt(currentUser.level) || 1;
+    const xp = parseInt(currentUser.xp) || 0;
+    const nextLevelXP = level * 1000;
+    const progress = (xp / nextLevelXP) * 100;
+
+    document.getElementById('display-level').innerText = `Level ${level}`;
+    document.getElementById('xp-text').innerText = `${xp} / ${nextLevelXP} XP`;
     document.getElementById('xp-bar').style.width = `${Math.min(progress, 100)}%`;
 }
 
-// --- GAME LOGIC (501) ---
+// --- GAME LOGIC (501 QUICKPLAY) ---
+
 function startQuickplay() {
     gameState.score = 501;
-    gameState.currentTurn = [];
-    gameState.history = [];
+    gameState.sessionStats = { throws: 0, hits_1: 0, hits_2: 0, hits_3: 0, doubles: 0, triples: 0 };
+    currentMatchXP = 0;
+    inputBuffer = "";
+    clearInput();
     updateGameUI();
     showScreen('game-screen');
 }
 
-let inputBuffer = "";
-
 function addScore(num) {
-    if (inputBuffer.length > 2) return; // Max 3 digits
-    inputBuffer += num;
-    updateInputDisplay();
+    if (inputBuffer.length < 3) {
+        inputBuffer += num;
+        updateInputDisplay();
+    }
 }
 
 function toggleMod(type) {
-    const btn = document.getElementById(`mod-${type.toLowerCase()}`);
-    // Reset anderen Button
-    if (type === 'D') document.getElementById('mod-t').classList.remove('active');
-    else document.getElementById('mod-d').classList.remove('active');
+    const btnD = document.getElementById('mod-d');
+    const btnT = document.getElementById('mod-t');
 
-    // Toggle aktuellen
-    if (gameState.multiplier === (type === 'D' ? 2 : 3)) {
-        gameState.multiplier = 1; // Reset to single
-        btn.classList.remove('active');
+    if (type === 'D') {
+        gameState.multiplier = (gameState.multiplier === 2) ? 1 : 2;
+        btnT.classList.remove('active');
+        btnD.classList.toggle('active', gameState.multiplier === 2);
     } else {
-        gameState.multiplier = type === 'D' ? 2 : 3;
-        btn.classList.add('active');
+        gameState.multiplier = (gameState.multiplier === 3) ? 1 : 3;
+        btnD.classList.remove('active');
+        btnT.classList.toggle('active', gameState.multiplier === 3);
     }
     updateInputDisplay();
 }
 
 function updateInputDisplay() {
-    let display = inputBuffer === "" ? "0" : inputBuffer;
     let prefix = gameState.multiplier === 2 ? "D" : (gameState.multiplier === 3 ? "T" : "");
-    document.getElementById('current-input-display').innerText = prefix + display;
+    document.getElementById('current-input-display').innerText = prefix + (inputBuffer || "0");
 }
 
 function clearInput() {
@@ -119,28 +153,24 @@ function clearInput() {
 
 function submitTurn() {
     if (inputBuffer === "") return;
-    
-    let points = parseInt(inputBuffer) * gameState.multiplier;
-    
-    // Plausibilitätscheck (Max 60 pro Wurf)
-    if (points > 60 || (parseInt(inputBuffer) > 20 && parseInt(inputBuffer) !== 25 && parseInt(inputBuffer) !== 50)) {
-        alert("Ungültiger Wurf!");
+
+    const val = parseInt(inputBuffer);
+    const points = val * gameState.multiplier;
+
+    // Validierung (Dart Regeln)
+    if (points > 60 || (val > 20 && val !== 25 && val !== 50)) {
+        alert("Ungültiger Score!");
         clearInput();
         return;
     }
 
-    // Abziehen
-    let newScore = gameState.score - points;
-
-    if (newScore < 0 || newScore === 1) {
-        alert("BUST!");
-        // Logik für BUST (Zurücksetzen auf Anfang der Runde wäre komplexer, hier simplified)
+    if (gameState.score - points < 0 || gameState.score - points === 1) {
+        alert("BUST! (Überworfen)");
     } else {
-        gameState.score = newScore;
-        // Tracking für Backend
-        trackStats(points, gameState.multiplier);
+        gameState.score -= points;
+        trackThrowXP(points, gameState.multiplier);
     }
-    
+
     clearInput();
     updateGameUI();
 
@@ -149,59 +179,67 @@ function submitTurn() {
     }
 }
 
+function trackThrowXP(points, mult) {
+    gameState.sessionStats.throws++;
+    if (mult === 2) gameState.sessionStats.doubles++;
+    if (mult === 3) gameState.sessionStats.triples++;
+
+    // XP Berechnung
+    let gain = 5; // Basis pro Wurf
+    if (points >= 40) gain += 10;
+    if (points >= 60) gain += 20;
+    if (points >= 100) gain += 50;
+    
+    currentMatchXP += gain;
+}
+
 function updateGameUI() {
     document.getElementById('current-score').innerText = gameState.score;
 }
 
-// --- XP & STATS TRACKING ---
-let sessionStats = { throws: 0, hits_1: 0, hits_2: 0, hits_3: 0, doubles: 0, triples: 0 };
-
-function trackStats(points, multiplier) {
-    sessionStats.throws++;
-    if (multiplier === 2) sessionStats.doubles++;
-    if (multiplier === 3) sessionStats.triples++;
-    
-    // XP Berechnung: Einfach 10 XP pro Wurf + Bonuspunkte für hohe Scores
-    let xpGain = 10;
-    if (points >= 60) xpGain += 20;
-    if (points >= 100) xpGain += 50;
-    if (points === 180) xpGain += 180;
-    
-    currentUser.xp += xpGain;
-}
-
 async function finishGame() {
-    alert("SIEG! Spiel beendet.");
+    alert(`Leg beendet! Du hast ${currentMatchXP} XP verdient.`);
     
-    // Daten an Backend senden
     const payload = {
         action: 'saveMatch',
         username: currentUser.username,
-        xp_gain: currentUser.xp, // Hier senden wir den neuen Gesamtstand oder das Delta, oben im Script nutzen wir Delta, also Vorsicht:
-        // Korrektur: Wir haben XP lokal hochgezählt. Senden wir einfach das Delta der Session.
-        match_stats: sessionStats
+        xp_gain: currentMatchXP,
+        match_stats: gameState.sessionStats
     };
-    
-    // Für die Simplizität senden wir hier einen fixen XP Wert für den Sieg
-    payload.xp_gain = 500; // Bonus für Sieg
 
     try {
-        await fetch('/api/', { method: 'POST', body: JSON.stringify(payload) });
-        // User neu laden um Level Update zu bekommen wäre sauber, hier nehmen wir an es hat geklappt
-    } catch(e) { console.error(e); }
+        const res = await fetch('/api/', {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            currentUser.xp = data.newXP;
+            currentUser.level = data.newLevel;
+        }
+    } catch (e) {
+        console.error("Save Error:", e);
+    }
 
-    sessionStats = { throws: 0, hits_1: 0, hits_2: 0, hits_3: 0, doubles: 0, triples: 0 };
     showScreen('dashboard-screen');
-    updateDashboard(); // Aktualisiert die Bar visuell
+    updateDashboard();
 }
 
-// --- HELPER ---
+// --- NAVIGATION ---
+
 function showScreen(id) {
-    document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
-    document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
-    document.getElementById(id).classList.remove('hidden');
-    document.getElementById(id).classList.add('active');
+    document.querySelectorAll('section').forEach(s => {
+        s.classList.add('hidden');
+        s.classList.remove('active');
+    });
+    const active = document.getElementById(id);
+    active.classList.remove('hidden');
+    active.classList.add('active');
 }
+
 function exitGame() {
-    if(confirm("Spiel abbrechen?")) showScreen('dashboard-screen');
+    if (confirm("Möchtest du das Spiel wirklich abbrechen?")) {
+        showScreen('dashboard-screen');
+    }
 }
