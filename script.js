@@ -31,29 +31,33 @@ async function login() {
     const action = isSignup ? 'signup' : 'login';
     const payload = { action, username: user, password: pass, inviteCode: code };
 
-    try {
-        // Fetch via Netlify Proxy (/api/)
-        const res = await fetch('/api/', {
-            method: 'POST',
-            body: JSON.stringify(payload)
-        });
-        const data = await res.json();
+    // Ersetze den entsprechenden Teil in deiner login() Funktion:
+try {
+    const res = await fetch('/api/', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+    });
+    
+    const data = await res.json();
+    console.log("Server Antwort:", data); // Schau in die F12 Konsole!
 
-        if (data.success) {
-            currentUser = data.user;
-            showScreen('dashboard-screen');
-            updateDashboard();
-        } else {
-            alert(data.message);
-        }
-    } catch (e) {
-        console.error(e);
-        alert("Verbindungsfehler. Prüfe Netlify Proxy.");
+    if (data.success) {
+        currentUser = data.user;
+        showScreen('dashboard-screen');
+        updateDashboard();
+    } else {
+        // Falls 'message' fehlt, zeige das ganze Objekt als Text oder einen Standardfehler
+        alert(data.message || data.error || "Ein unbekannter Serverfehler ist aufgetreten.");
+    }
+} catch (e) {
+    console.error("Fetch Fehler:", e);
+    alert("Netzwerkfehler: " + e.message);
+}
     } finally {
         btn.disabled = false;
         btn.innerText = isSignup ? 'Erstellen' : 'Login';
     }
-}
+
 
 // --- DASHBOARD ---
 function updateDashboard() {
