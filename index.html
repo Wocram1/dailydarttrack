@@ -20,10 +20,8 @@
                 <div class="input-group">
                     <input type="text" id="username" placeholder="Benutzername">
                     <input type="password" id="password" placeholder="Passwort">
-                    <input type="text" id="invite-code" placeholder="Invite Code (123)" style="display:none;">
                 </div>
                 <button class="btn-primary" onclick="login()">Login</button>
-                <button class="btn-secondary" id="toggle-auth" onclick="toggleAuthMode()">Account erstellen</button>
             </div>
         </section>
 
@@ -34,78 +32,96 @@
                     <span id="display-level" class="level-badge">Lvl 1</span>
                 </div>
                 <div class="xp-container">
-                    <div class="xp-info">
-                        <span id="xp-text">0 / 1000 XP</span>
-                    </div>
-                    <div class="xp-bar-bg">
-                        <div class="xp-bar-fill" id="xp-bar"></div>
-                    </div>
+                    <div class="xp-info"><span id="xp-text">0 / 1000 XP</span></div>
+                    <div class="xp-bar-bg"><div class="xp-bar-fill" id="xp-bar"></div></div>
                 </div>
             </header>
 
             <div class="menu-grid">
-                <div class="menu-card disabled">
+                <div class="menu-card active" onclick="showCategoryMenu()">
                     <i class="fa-solid fa-trophy"></i>
                     <h3>Games</h3>
                 </div>
-                <div class="menu-card disabled">
-                    <i class="fa-solid fa-chart-line"></i>
-                    <h3>Stats</h3>
-                </div>
+                <div class="menu-card disabled"><i class="fa-solid fa-chart-line"></i><h3>Stats</h3></div>
                 <div class="menu-card active" onclick="startQuickplay()">
                     <i class="fa-solid fa-play"></i>
                     <h3>Quickplay</h3>
-                    <p>501 Single Out</p>
+                    <p>501 S-Out</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="category-screen" class="hidden">
+            <div class="screen-header">
+                <button class="back-btn" onclick="showScreen('dashboard-screen')"><i class="fa-solid fa-chevron-left"></i></button>
+                <h2>Kategorien</h2>
+            </div>
+            <div class="category-grid">
+                <button class="cat-btn active" onclick="showSubGameMenu('boardControl')">Board Control</button>
+                <button class="cat-btn disabled">Finishing</button>
+                <button class="cat-btn disabled">Scoring</button>
+                <button class="cat-btn disabled">Warmup</button>
+                <button class="cat-btn disabled">X01</button>
+            </div>
+        </section>
+
+        <section id="subgame-screen" class="hidden">
+            <div class="screen-header">
+                <button class="back-btn" onclick="showScreen('category-screen')"><i class="fa-solid fa-chevron-left"></i></button>
+                <h2 id="subgame-title">Board Control</h2>
+            </div>
+            <div class="game-list" id="game-list">
+                </div>
+        </section>
+
+        <section id="level-select-screen" class="hidden">
+            <div class="screen-header">
+                <button class="back-btn" onclick="showScreen('subgame-screen')"><i class="fa-solid fa-chevron-left"></i></button>
+                <h2>Schwierigkeit</h2>
+            </div>
+            <div class="level-grid" id="level-grid">
+                </div>
+        </section>
+
+        <section id="atc-game-screen" class="hidden">
+            <div class="game-header">
+                <button class="exit-btn" onclick="exitGame()"><i class="fa-solid fa-xmark"></i></button>
+                <div class="round-counter">Aufnahme: <span id="atc-rounds">1</span></div>
+                <div class="heart-container" id="atc-hearts"></div>
+                <div class="dart-indicators">
+                    <i class="fa-solid fa-location-arrow dart-icon" id="atc-dart-1"></i>
+                    <i class="fa-solid fa-location-arrow dart-icon" id="atc-dart-2"></i>
+                    <i class="fa-solid fa-location-arrow dart-icon" id="atc-dart-3"></i>
+                </div>
+            </div>
+
+            <div class="atc-scoreboard">
+                <div class="target-display">
+                    <span id="atc-target-label">ZIEL</span>
+                    <h1 id="atc-current-target">1</h1>
+                </div>
+                <div class="board-preview">
+                    <div id="board-highlight"></div>
+                </div>
+            </div>
+
+            <div class="atc-controls">
+                <div class="atc-input-grid">
+                    <button class="atc-btn hit-btn" onclick="atcHit('S')">S-<span class="target-val">1</span></button>
+                    <button class="atc-btn hit-btn" onclick="atcHit('D')">D-<span class="target-val">1</span></button>
+                    <button class="atc-btn hit-btn" onclick="atcHit('T')">T-<span class="target-val">1</span></button>
+                    <button class="atc-btn miss-btn" onclick="atcHit('MISS')">MISS</button>
+                    <button class="atc-btn undo-btn" onclick="undoAtc()"><i class="fa-solid fa-rotate-left"></i></button>
+                    <button class="atc-btn next-round-btn" onclick="nextAtcRound()">NÄCHSTE RUNDE</button>
                 </div>
             </div>
         </section>
 
         <section id="game-screen" class="hidden">
-            <div class="game-header">
-                <button class="exit-btn" onclick="exitGame()"><i class="fa-solid fa-xmark"></i></button>
-                <div class="dart-indicators">
-                    <i class="fa-solid fa-location-arrow dart-icon" id="dart-1"></i>
-                    <i class="fa-solid fa-location-arrow dart-icon" id="dart-2"></i>
-                    <i class="fa-solid fa-location-arrow dart-icon" id="dart-3"></i>
-                </div>
-            </div>
-
-            <div class="scoreboard">
-                <div class="score-box">
-                    <span>REST</span>
-                    <h1 id="current-score">501</h1>
-                </div>
-                <div id="current-input-display">0</div>
-            </div>
-
-            <div class="numpad-container">
-                <div class="multiplier-tabs">
-                    <button id="mod-s" class="mod-btn active" onclick="setMod(1)">SINGLE</button>
-                    <button id="mod-d" class="mod-btn" onclick="setMod(2)">DOUBLE</button>
-                    <button id="mod-t" class="mod-btn" onclick="setMod(3)">TRIPLE</button>
-                </div>
-
-                <div class="numpad-grid">
-                    <button onclick="addScore(1)">1</button>
-                    <button onclick="addScore(2)">2</button>
-                    <button onclick="addScore(3)">3</button>
-                    <button onclick="addScore(4)">4</button>
-                    <button onclick="addScore(5)">5</button>
-                    <button onclick="addScore(6)">6</button>
-                    <button onclick="addScore(7)">7</button>
-                    <button onclick="addScore(8)">8</button>
-                    <button onclick="addScore(9)">9</button>
-                    
-                    <button class="special action-undo" onclick="undoLastThrow()"><i class="fa-solid fa-rotate-left"></i></button>
-                    <button onclick="addScore(0)">0</button>
-                    <button class="special action-del" onclick="clearInput()"><i class="fa-solid fa-delete-left"></i></button>
-                    
-                    <button class="special action-enter" onclick="submitTurn()">ENTER</button>
-                </div>
-            </div>
-        </section>
+            </section>
     </div>
 
+    <script src="boardControl.js"></script> 
     <script src="script.js"></script>
 </body>
 </html>

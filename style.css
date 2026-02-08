@@ -1,19 +1,26 @@
+/* =========================================
+   1. BASIS & VARIABLEN
+   ========================================= */
 :root {
     --bg-dark: #0a0a0a;
     --glass: rgba(255, 255, 255, 0.08);
     --glass-border: rgba(255, 255, 255, 0.12);
     --accent-blue: #0A84FF;
-    --accent-gold: #FFD60A;
+    --accent-gold: #FFD60A; /* Beige/Gold aus deinem Bild */
     --accent-red: #FF453A;
     --text: #ffffff;
+    --ios-grey: #1c1c1e;
 }
 
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+* { 
+    box-sizing: border-box; 
+    -webkit-tap-highlight-color: transparent; 
+}
 
 body {
     background-color: var(--bg-dark);
     color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     margin: 0;
     height: 100vh;
     display: flex;
@@ -33,7 +40,9 @@ body {
 
 .hidden { display: none !important; }
 
-/* Glass Panels */
+/* =========================================
+   2. PANELS & ALLGEMEINE ELEMENTE
+   ========================================= */
 .glass-panel {
     background: var(--glass);
     backdrop-filter: blur(20px);
@@ -44,11 +53,6 @@ body {
     margin: 20px;
     text-align: center;
 }
-
-/* Login */
-.logo-area { margin-bottom: 30px; }
-.logo-area i { font-size: 3rem; color: var(--accent-blue); margin-bottom: 10px; }
-.logo-area span { color: var(--accent-blue); font-weight: 800; }
 
 input {
     width: 100%;
@@ -61,51 +65,95 @@ input {
     font-size: 16px;
 }
 
-button { cursor: pointer; border: none; transition: all 0.2s; }
+button { cursor: pointer; border: none; transition: all 0.2s; font-weight: bold; }
 button:active { transform: scale(0.95); }
 
-.btn-primary { background: var(--accent-blue); color: white; padding: 16px; border-radius: 14px; width: 100%; font-weight: bold; }
+.btn-primary { background: var(--accent-blue); color: white; padding: 16px; border-radius: 14px; width: 100%; }
 .btn-secondary { background: transparent; color: #888; padding: 10px; width: 100%; margin-top: 10px; }
 
-/* Dashboard */
+/* =========================================
+   3. DASHBOARD & NAVIGATION
+   ========================================= */
 .user-header { padding: 40px 25px 20px; }
 .user-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-.level-badge { background: var(--accent-gold); color: black; padding: 4px 12px; border-radius: 20px; font-weight: 800; font-size: 12px; }
+.level-badge { background: var(--accent-gold); color: black; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
 
 .xp-bar-bg { width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
-.xp-bar-fill { height: 100%; background: var(--accent-blue); width: 0%; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+.xp-bar-fill { height: 100%; background: var(--accent-blue); width: 0%; transition: width 0.6s ease; }
 
 .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; }
 .menu-card { background: var(--glass); padding: 25px; border-radius: 24px; text-align: center; border: 1px solid var(--glass-border); }
 .menu-card.active { border-color: var(--accent-blue); }
-.menu-card.active i { color: var(--accent-blue); }
-.menu-card.disabled { opacity: 0.4; }
-.menu-card i { font-size: 24px; margin-bottom: 10px; }
-.menu-card h3 { margin: 5px 0; font-size: 16px; }
-.menu-card p { margin: 0; font-size: 12px; color: #888; }
+.menu-card.disabled { opacity: 0.4; pointer-events: none; }
 
-/* Game Screen */
+/* Kategorien-Menü */
+.screen-header { display: flex; align-items: center; padding: 40px 20px 10px; gap: 15px; }
+.back-btn { background: var(--glass); color: white; width: 40px; height: 40px; border-radius: 50%; }
+
+.category-grid, .game-list { display: flex; flex-direction: column; gap: 12px; padding: 20px; }
+.cat-btn, .game-item-btn { 
+    background: var(--glass); border: 1px solid var(--glass-border); 
+    color: white; padding: 20px; border-radius: 15px; font-size: 18px; text-align: left; 
+}
+.cat-btn.active { border-color: var(--accent-blue); background: rgba(10, 132, 255, 0.1); }
+.cat-btn.disabled { opacity: 0.3; pointer-events: none; }
+
+.level-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 20px; }
+.level-btn { aspect-ratio: 1; background: var(--glass); border: 1px solid var(--glass-border); color: white; border-radius: 10px; }
+
+/* =========================================
+   4. GAME UI (ATC & SPECIAL MODES)
+   ========================================= */
 .game-header { display: flex; justify-content: space-between; align-items: center; padding: 40px 20px 0; }
 .exit-btn { background: var(--glass); color: white; width: 40px; height: 40px; border-radius: 50%; }
 
+/* Dart Icons & Animation */
 .dart-indicators { display: flex; gap: 10px; }
 .dart-icon { font-size: 1.2rem; color: var(--accent-gold); transition: all 0.4s ease; transform: rotate(-45deg); }
 .dart-icon.spent { opacity: 0.1; transform: translateY(-20px) scale(0.5); }
 
-.scoreboard { text-align: center; padding: 20px 0; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
-.scoreboard h1 { font-size: 100px; margin: 0; font-weight: 200; }
-.scoreboard span { color: #888; letter-spacing: 4px; font-size: 14px; }
-#current-input-display { font-size: 32px; color: var(--accent-gold); font-weight: bold; height: 40px; margin-top: 10px; }
+/* Scoreboard Around the Clock */
+.atc-scoreboard { text-align: center; padding: 20px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center;}
+.target-display span { color: #888; letter-spacing: 4px; font-size: 14px; }
+.target-display h1 { font-size: 80px; margin: 0; color: var(--accent-gold); }
 
-/* Numpad */
-.numpad-container { background: #1c1c1e; border-radius: 35px 35px 0 0; padding: 20px; }
-.multiplier-tabs { display: flex; background: black; padding: 4px; border-radius: 14px; margin-bottom: 15px; }
-.mod-btn { flex: 1; padding: 12px; background: transparent; color: #666; border-radius: 10px; font-weight: bold; }
-.mod-btn.active { background: var(--accent-blue); color: white; }
+.heart-container { color: var(--accent-red); font-size: 1.2rem; display: flex; gap: 5px; margin: 10px 0; }
+.round-counter { font-size: 14px; color: #888; }
 
-.numpad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.numpad-grid button { background: #2c2c2e; color: white; padding: 20px; border-radius: 15px; font-size: 24px; }
-.numpad-grid .special { background: #3a3a3c; }
-.numpad-grid .action-enter { grid-column: span 3; background: var(--accent-blue); }
-.numpad-grid .action-del { color: var(--accent-red); }
-.numpad-grid .action-undo { color: var(--accent-gold); }
+/* ATC Controls (Numpad-Ersatz) */
+.atc-controls { background: var(--ios-grey); border-radius: 35px 35px 0 0; padding: 20px; }
+.atc-input-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+.atc-btn { padding: 25px 10px; border-radius: 15px; font-size: 1.1rem; }
+.hit-btn { background: #e5c276; color: black; } /* Beige-Ton aus Screenshot */
+.miss-btn { background: #3a3a3c; color: white; }
+.undo-btn { background: #2c2c2e; color: white; }
+.next-round-btn { grid-column: span 2; background: var(--accent-blue); color: white; }
+
+/* Dartboard Animation Placeholder */
+.board-preview {
+    width: 120px;
+    height: 120px;
+    margin: 10px auto;
+    background: radial-gradient(circle, transparent 30%, rgba(255,214,10,0.1) 100%);
+    border: 2px dashed rgba(255,214,10,0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.05); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 0.5; }
+}
+
+/* Shake Effekt für Undo */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+.score-undo { animation: shake 0.2s ease-in-out; color: var(--accent-red) !important; }

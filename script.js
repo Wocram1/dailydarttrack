@@ -1,202 +1,130 @@
-let currentUser = null;
-let isSignup = false;
-let currentMatchXP = 0;
-let dartCount = 0; 
-let throwHistory = []; 
+let currentGame = null;
+let gameData = null;
 
-let gameState = {
-    score: 501,
-    multiplier: 1,
-    sessionStats: { throws: 0, hits_1: 0, hits_2: 0, hits_3: 0, doubles: 0, triples: 0 }
-};
+// NAVIGATION & MENÜS
+function showCategoryMenu() {
+    showScreen('category-screen');
+}
 
-let inputBuffer = "";
-
-async function apiCall(payload) {
-    try {
-        const res = await fetch('/api', {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify(payload),
-            redirect: 'follow'
+function showSubGameMenu(category) {
+    const list = document.getElementById('game-list');
+    list.innerHTML = '';
+    
+    if (category === 'boardControl') {
+        Object.keys(BoardControlGames).forEach(key => {
+            const game = BoardControlGames[key];
+            const btn = document.createElement('button');
+            btn.className = 'game-item-btn';
+            btn.innerHTML = `${game.name} <i class="fa-solid fa-chevron-right" style="float:right"></i>`;
+            btn.onclick = () => showLevelSelect(key);
+            list.appendChild(btn);
         });
-        if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
-        return await res.json();
-    } catch (e) {
-        console.error("API Error:", e);
-        throw e;
+        showScreen('subgame-screen');
     }
 }
 
-function toggleAuthMode() {
-    isSignup = !isSignup;
-    document.getElementById('invite-code').style.display = isSignup ? 'block' : 'none';
-    document.getElementById('toggle-auth').innerText = isSignup ? 'Zurück zum Login' : 'Account erstellen';
-    document.querySelector('.btn-primary').innerText = isSignup ? 'Registrieren' : 'Login';
+function showLevelSelect(gameKey) {
+    const grid = document.getElementById('level-grid');
+    grid.innerHTML = '';
+    for (let i = 1; i <= 10; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'level-btn';
+        btn.innerText = i;
+        btn.onclick = () => startAtc(i);
+        grid.appendChild(btn);
+    }
+    showScreen('level-select-screen');
 }
 
-async function login() {
-    const user = document.getElementById('username').value.trim();
-    const pass = document.getElementById('password').value.trim();
-    const code = document.getElementById('invite-code').value.trim();
+// ATC SPIEL LOGIK
+function startAtc(level) {
+    gameData = BoardControlGames.atc.init(level);
+    currentGame = 'atc';
+    updateAtcUI();
+    showScreen('atc-game-screen');
+}
 
-    if (!user || !pass) return alert("Daten eingeben.");
+function atcHit(type) {
+    if (gameData.dartsThisRound >= 3) return;
 
-    const btn = document.querySelector('.btn-primary');
-    btn.disabled = true;
-    btn.innerText = "Lade...";
+    const isHit = (type !== 'MISS');
+    gameData.dartsThisRound++;
+    gameData.dartsThrownThisTarget++;
 
-    try {
-        const data = await apiCall({ 
-            action: isSignup ? 'signup' : 'login', 
-            username: user, password: pass, inviteCode: code 
-        });
+    const entry = {
+        target: gameData.target,
+        type: type,
+        xp: BoardControlGames.atc.calculateXP(type, gameData.dartsThisRound, false)
+    };
+    gameData.history.push(entry);
+    currentMatchXP += entry.xp;
 
-        if (data.success) {
-            currentUser = data.user;
-            if (typeof currentUser.stats === 'string') currentUser.stats = JSON.parse(currentUser.stats);
-            showScreen('dashboard-screen');
-            updateDashboard();
-        } else {
-            alert(data.message);
+    if (isHit) {
+        gameData.hitsCollected++;
+        if (gameData.hitsCollected >= gameData.targetHitsNeeded) {
+            // Ziel erreicht
+            gameData.target++;
+            gameData.hitsCollected = 0;
+            gameData.dartsThrownThisTarget = 0;
+            if (gameData.hearts !== null) gameData.hearts = 3; // Herzen erneuern
         }
-    } catch (e) {
-        alert("Fehler!");
-    } finally {
-        btn.disabled = false;
-        btn.innerText = isSignup ? 'Registrieren' : 'Login';
-    }
-}
-
-function updateDashboard() {
-    if (!currentUser) return;
-    document.getElementById('display-username').innerText = currentUser.username;
-    const level = parseInt(currentUser.level) || 1;
-    const xp = parseInt(currentUser.xp) || 0;
-    const nextLevelXP = level * 1000;
-    const progress = (xp / nextLevelXP) * 100;
-
-    document.getElementById('display-level').innerText = `Lvl ${level}`;
-    document.getElementById('xp-text').innerText = `${xp} / ${nextLevelXP} XP`;
-    document.getElementById('xp-bar').style.width = `${Math.min(progress, 100)}%`;
-}
-
-function startQuickplay() {
-    gameState.score = 501;
-    gameState.sessionStats = { throws: 0, hits_1: 0, hits_2: 0, hits_3: 0, doubles: 0, triples: 0 };
-    throwHistory = [];
-    currentMatchXP = 0;
-    dartCount = 0;
-    setMod(1);
-    clearInput();
-    updateGameUI();
-    updateDartIcons();
-    showScreen('game-screen');
-}
-
-function setMod(m) {
-    gameState.multiplier = m;
-    document.querySelectorAll('.mod-btn').forEach((b, i) => b.classList.toggle('active', i === m-1));
-    updateInputDisplay();
-}
-
-function addScore(num) {
-    if (inputBuffer.length < 3) {
-        inputBuffer += num;
-        updateInputDisplay();
-    }
-}
-
-function submitTurn() {
-    const val = parseInt(inputBuffer) || 0;
-    const points = val * gameState.multiplier;
-
-    if (points > 60 || (val > 20 && val !== 25 && val !== 50)) {
-        alert("Ungültig!");
-        clearInput();
-        return;
-    }
-
-    if (gameState.score - points < 0 || gameState.score - points === 1) {
-        alert("BUST!");
-        dartCount = 0;
     } else {
-        gameState.score -= points;
-        trackDart(points, gameState.multiplier);
+        // Miss Logik für Herzen
+        if (gameData.hearts !== null && gameData.dartsThrownThisTarget >= gameData.maxDartsPerTarget) {
+            gameData.hearts--;
+            gameData.dartsThrownThisTarget = 0;
+            if (gameData.hearts <= 0) {
+                if (gameData.target > 1) gameData.target--;
+                gameData.hearts = 3;
+            }
+        }
     }
 
-    clearInput();
-    setMod(1);
-    updateGameUI();
-    if (gameState.score === 0) finishGame();
-}
+    updateAtcUI();
 
-function trackDart(points, mult) {
-    let gain = 5;
-    if (points >= 40) gain += 10;
-    if (points >= 60) gain += 20;
-
-    throwHistory.push({ points, mult, xp: gain, dartNum: dartCount + 1 });
-
-    dartCount++;
-    gameState.sessionStats.throws++;
-    if (points > 0) gameState.sessionStats[`hits_${dartCount}`]++;
-    if (mult === 2) gameState.sessionStats.doubles++;
-    if (mult === 3) gameState.sessionStats.triples++;
-    currentMatchXP += gain;
-
-    updateDartIcons();
-    if (dartCount >= 3) {
-        setTimeout(() => { dartCount = 0; updateDartIcons(); }, 800);
+    if (gameData.target > 20) {
+        finishAtc();
     }
 }
 
-function undoLastThrow() {
-    if (throwHistory.length === 0) return;
-    const last = throwHistory.pop();
-    gameState.score += last.points;
-    gameState.sessionStats.throws--;
-    if (last.points > 0) gameState.sessionStats[`hits_${last.dartNum}`]--;
-    if (last.mult === 2) gameState.sessionStats.doubles--;
-    if (last.mult === 3) gameState.sessionStats.triples--;
-    currentMatchXP -= last.xp;
-    dartCount = (dartCount === 0) ? 2 : last.dartNum - 1;
-    updateGameUI();
-    updateDartIcons();
+function nextAtcRound() {
+    gameData.rounds++;
+    gameData.dartsThisRound = 0;
+    updateAtcUI();
 }
 
-function updateDartIcons() {
+function undoAtc() {
+    if (gameData.history.length === 0) return;
+    const last = gameData.history.pop();
+    // Einfache Rücksetzung (für komplexe Herzen/Targets müsste man den State im History-Objekt mitspeichern)
+    location.reload(); // Quick & Dirty für den Prototyp, oder State-Snapshot nutzen
+}
+
+function updateAtcUI() {
+    document.getElementById('atc-current-target').innerText = gameData.target;
+    document.getElementById('atc-rounds').innerText = gameData.rounds;
+    document.querySelectorAll('.target-val').forEach(el => el.innerText = gameData.target);
+    
+    // Herzen
+    const hContainer = document.getElementById('atc-hearts');
+    hContainer.innerHTML = '';
+    if (gameData.hearts !== null) {
+        for (let i = 0; i < gameData.hearts; i++) {
+            hContainer.innerHTML += '<i class="fa-solid fa-heart"></i>';
+        }
+    }
+
+    // Darts
     for (let i = 1; i <= 3; i++) {
-        document.getElementById(`dart-${i}`).classList.toggle('spent', i <= dartCount);
+        document.getElementById(`atc-dart-${i}`).classList.toggle('spent', i <= gameData.dartsThisRound);
     }
 }
 
-function updateInputDisplay() {
-    let p = gameState.multiplier === 2 ? "D" : (gameState.multiplier === 3 ? "T" : "");
-    document.getElementById('current-input-display').innerText = p + (inputBuffer || "0");
-}
-
-function clearInput() { inputBuffer = ""; updateInputDisplay(); }
-
-function updateGameUI() { document.getElementById('current-score').innerText = gameState.score; }
-
-async function finishGame() {
-    alert(`Leg beendet! +${currentMatchXP} XP`);
-    const data = await apiCall({ 
-        action: 'saveMatch', username: currentUser.username, 
-        xp_gain: currentMatchXP, match_stats: gameState.sessionStats 
-    });
-    if (data.success) {
-        currentUser.xp = data.newXP;
-        currentUser.level = data.newLevel;
-    }
+async function finishAtc() {
+    const finalXP = currentMatchXP + 100;
+    alert(`Gratulation! Around the Clock beendet. +${finalXP} XP`);
+    // API Call wie bei Quickplay...
     showScreen('dashboard-screen');
-    updateDashboard();
 }
 
-function showScreen(id) {
-    document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
-    document.getElementById(id).classList.remove('hidden');
-}
-
-function exitGame() { if (confirm("Spiel abbrechen?")) showScreen('dashboard-screen'); }
+// ... Rest deiner bisherigen Funktionen (login, showScreen etc.) ...
