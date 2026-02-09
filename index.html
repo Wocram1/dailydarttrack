@@ -9,52 +9,35 @@
 </head>
 <body>
     <div class="app-container">
+        
         <section id="login-screen" class="active">
             <div class="glass-panel">
                 <div class="logo-area"><i class="fa-solid fa-crosshairs"></i><h1>Dart Tracker<span>PRO</span></h1></div>
                 <div class="input-group">
                     <input type="text" id="username" placeholder="Benutzername">
                     <input type="password" id="password" placeholder="Passwort">
-                    <input type="text" id="invite-code" placeholder="Einladungscode" style="display: none;">
                 </div>
                 <button class="btn-primary" onclick="login()">Login</button>
-                <button id="toggle-auth" class="btn-secondary" onclick="toggleAuthMode()">Account erstellen</button>
             </div>
         </section>
 
-        <section id="dashboard-screen" class="hidden">
-            <header class="user-header">
-                <div class="user-info"><h2 id="display-username">Spieler</h2><span id="display-level" class="level-badge">Lvl 1</span></div>
-                <div class="xp-container"><div class="xp-bar-bg"><div class="xp-bar-fill" id="xp-bar"></div></div></div>
-            </header>
-            <div class="main-menu-scroll">
-                <h3 class="section-title">Training</h3>
-                <div class="category-stack">
-                    <div class="cat-card" onclick="showSubGameMenu('boardControl')">
-                        <div class="cat-icon blue"><i class="fa-solid fa-bullseye"></i></div>
-                        <div class="cat-info"><h3>Board Control</h3><p>ATC, Shanghai, Bermuda</p></div>
-                        <i class="fa-solid fa-chevron-right"></i>
-                    </div>
-                    <div class="cat-card" onclick="showSubGameMenu('finishing')">
-                        <div class="cat-icon green"><i class="fa-solid fa-check-double"></i></div>
-                        <div class="cat-info"><h3>Finishing</h3><p>9 Darts DO</p></div>
-                        <i class="fa-solid fa-chevron-right"></i>
-                    </div>
-                    <div class="cat-card" onclick="showSubGameMenu('scoring')">
-                        <div class="cat-icon red"><i class="fa-solid fa-fire"></i></div>
-                        <div class="cat-info"><h3>Scoring</h3><p>XX Darts at XX</p></div>
-                        <i class="fa-solid fa-chevron-right"></i>
-                    </div>
+        <section id="training-screen" class="hidden">
+            <header class="section-header"><h2>Training</h2></header>
+            <div id="category-list" class="category-stack">
                 </div>
+            <div id="game-selection-list" class="category-stack hidden">
+                <button class="back-btn-small" onclick="backToCategories()"><i class="fa-solid fa-chevron-left"></i> Zurück</button>
+                <div id="games-container"></div>
             </div>
         </section>
 
-        <section id="subgame-screen" class="hidden">
-            <div class="screen-header">
-                <button class="back-btn" onclick="showScreen('dashboard-screen')"><i class="fa-solid fa-chevron-left"></i></button>
-                <h2 id="subgame-title">Spiele</h2>
+        <section id="settings-screen" class="hidden">
+            <div class="glass-panel settings-panel">
+                <h2 id="settings-title">Einstellungen</h2>
+                <div id="settings-content"></div>
+                <button class="btn-primary" onclick="launchGame()">Spiel Starten</button>
+                <button class="btn-secondary" onclick="showScreen('training-screen')">Abbrechen</button>
             </div>
-            <div class="game-list" id="game-list"></div>
         </section>
 
         <section id="atc-game-screen" class="hidden">
@@ -88,10 +71,15 @@
             </div>
         </section>
 
+        <section id="stats-screen" class="hidden"><div class="placeholder-msg">Statistiken folgen...</div></section>
+        <section id="challenge-screen" class="hidden"><div class="placeholder-msg">Challenges folgen...</div></section>
+        <section id="quickplay-screen" class="hidden"><div class="placeholder-msg">501 Quickplay...</div></section>
+
         <nav class="bottom-nav hidden" id="main-nav">
-            <div class="nav-item active" onclick="showScreen('dashboard-screen')"><i class="fa-solid fa-house"></i><span>Home</span></div>
-            <div class="nav-item" onclick="alert('Quickplay 501 folgt')"><div class="play-fab"><i class="fa-solid fa-play"></i></div></div>
-            <div class="nav-item"><i class="fa-solid fa-chart-simple"></i><span>Stats</span></div>
+            <div class="nav-item" onclick="showScreen('quickplay-screen')"><i class="fa-solid fa-bolt"></i><span>Quickplay</span></div>
+            <div class="nav-item" onclick="showScreen('challenge-screen')"><i class="fa-solid fa-trophy"></i><span>Challenge</span></div>
+            <div class="nav-item" onclick="showScreen('training-screen')"><i class="fa-solid fa-dumbbell"></i><span>Training</span></div>
+            <div class="nav-item" onclick="showScreen('stats-screen')"><i class="fa-solid fa-chart-line"></i><span>Stats</span></div>
         </nav>
     </div>
 

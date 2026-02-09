@@ -1,86 +1,129 @@
-let currentUser = null;
 let gameData = null;
+let pendingGame = null;
 
-// --- NAV & AUTH ---
+const Categories = {
+    boardControl: { name: "Board Control", source: BoardControlGames },
+    finishing: { name: "Finishing", source: FinishingGames },
+    scoring: { name: "Scoring", source: ScoringGames }
+};
+
+// --- NAV ---
 function showScreen(id) {
     document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
     document.getElementById(id).classList.remove('hidden');
-    const nav = document.getElementById('main-nav');
-    (id === 'dashboard-screen' || id === 'subgame-screen') ? nav.classList.remove('hidden') : nav.classList.add('hidden');
-}
-
-function login() {
-    currentUser = { username: document.getElementById('username').value || "Spieler" };
-    showScreen('dashboard-screen');
-    document.getElementById('display-username').innerText = currentUser.username;
-}
-
-// --- GAME HUB ---
-function showSubGameMenu(cat) {
-    const list = document.getElementById('game-list');
-    list.innerHTML = '';
-    const source = (cat === 'boardControl') ? BoardControlGames : (cat === 'finishing' ? FinishingGames : ScoringGames);
+    document.getElementById('main-nav').classList.toggle('hidden', id === 'login-screen' || id === 'atc-game-screen' || id === 'settings-screen');
     
-    Object.keys(source).forEach(key => {
-        const div = document.createElement('div');
-        div.className = 'cat-card';
-        div.innerHTML = `<div class="cat-info"><h3>${source[key].name}</h3></div><i class="fa-solid fa-play"></i>`;
-        div.onclick = () => startGame(cat, key);
-        list.appendChild(div);
+    document.querySelectorAll('.nav-item').forEach(item => {
+        const spanText = item.querySelector('span').innerText.toLowerCase();
+        item.classList.toggle('active', id.includes(spanText));
     });
-    showScreen('subgame-screen');
+
+    if (id === 'training-screen') renderCategories();
 }
 
-function startGame(cat, key) {
-    const source = (cat === 'boardControl') ? BoardControlGames : (cat === 'finishing') ? FinishingGames : ScoringGames;
-    gameData = source[key].init();
-    document.getElementById('atc-mode-name').innerText = source[key].name;
+function login() { showScreen('training-screen'); }
+
+// --- TRAINING LOGIC ---
+function renderCategories() {
+    const container = document.getElementById('category-list');
+    container.innerHTML = '';
+    document.getElementById('game-selection-list').classList.add('hidden');
+    container.classList.remove('hidden');
+
+    Object.keys(Categories).forEach(key => {
+        const card = document.createElement('div');
+        card.className = 'cat-card';
+        card.innerHTML = `<span>${Categories[key].name}</span> <i class="fa-solid fa-chevron-right"></i>`;
+        card.onclick = () => renderGames(key);
+        container.appendChild(card);
+    });
+}
+
+function renderGames(catKey) {
+    const container = document.getElementById('games-container');
+    container.innerHTML = '';
+    document.getElementById('category-list').classList.add('hidden');
+    document.getElementById('game-selection-list').classList.remove('hidden');
+
+    const source = Categories[catKey].source;
+    Object.keys(source).forEach(gameKey => {
+        const card = document.createElement('div');
+        card.className = 'cat-card';
+        card.innerHTML = `<span><i class="fa-solid ${source[gameKey].icon}"></i> ${source[gameKey].name}</span>`;
+        card.onclick = () => openGameSettings(catKey, gameKey);
+        container.appendChild(card);
+    });
+}
+
+function backToCategories() {
+    document.getElementById('game-selection-list').classList.add('hidden');
+    document.getElementById('category-list').classList.remove('hidden');
+}
+
+// --- SETTINGS ---
+function openGameSettings(catKey, gameKey) {
+    const game = Categories[catKey].source[gameKey];
+    pendingGame = { catKey, gameKey };
+    document.getElementById('settings-title').innerText = game.name;
+    const content = document.getElementById('settings-content');
+    content.innerHTML = '';
+
+    game.config.forEach(conf => {
+        const row = document.createElement('div');
+        row.className = 'setting-row';
+        row.innerHTML = `<label>${conf.label}</label>`;
+        if (conf.type === 'select') {
+            let opts = conf.options.map(o => `<option value="${o}">${o}</option>`).join('');
+            row.innerHTML += `<select id="conf-${conf.id}">${opts}</select>`;
+        } else {
+            row.innerHTML += `<input type="number" id="conf-${conf.id}" value="${conf.default}">`;
+        }
+        content.appendChild(row);
+    });
+    showScreen('settings-screen');
+}
+
+function launchGame() {
+    const { catKey, gameKey } = pendingGame;
+    const gameSource = Categories[catKey].source[gameKey];
+    let settings = {};
+    gameSource.config.forEach(conf => {
+        settings[conf.id] = document.getElementById(`conf-${conf.id}`).value;
+    });
+
+    gameData = gameSource.init(settings);
+    document.getElementById('atc-mode-name').innerText = gameSource.name;
     Dartboard.render('dartboard-svg-container');
     updateGameUI();
     showScreen('atc-game-screen');
 }
 
-// --- UNIVERSAL INPUT HANDLER ---
+// --- GAMEPLAY ---
 function processInput(hitType) {
-    const dartsThisRound = gameData.history.filter(d => d.round === gameData.rounds);
-    if (dartsThisRound.length >= 3) return;
+    const darts = gameData.history.filter(d => d.round === gameData.rounds);
+    if (darts.length >= 3) return;
 
-    // Speichere Wurf
-    const entry = { round: gameData.rounds, type: hitType, prevTarget: gameData.target };
-    gameData.history.push(entry);
+    gameData.history.push({ round: gameData.rounds, type: hitType, target: gameData.target });
+    const source = Categories[gameData.type].source;
+    const result = source[gameData.mode].onHit(gameData, hitType, gameData.target);
 
-    // Hole Logik aus der entsprechenden Datei
-    let result;
-    if (gameData.type === 'boardControl') result = BoardControlGames[gameData.mode].onHit(gameData, hitType);
-    else if (gameData.type === 'finishing') result = FinishingGames[gameData.mode].onHit(gameData, hitType);
-    else if (gameData.type === 'scoring') result = ScoringGames[gameData.mode].onHit(gameData, hitType);
-
+    if (result && result.bust) { alert(result.msg); undoRound(); }
     updateGameUI();
-    if (result && result.finished) {
-        alert("Spiel beendet!");
-        showScreen('dashboard-screen');
-    }
-}
-
-function undoLastAction() {
-    const dartsThisRound = gameData.history.filter(d => d.round === gameData.rounds);
-    if (dartsThisRound.length > 0) {
-        const last = gameData.history.pop();
-        gameData.target = last.prevTarget; // Ziel zurücksetzen
-    } else if (gameData.rounds > 1) {
-        if (confirm("Runde zurück?")) gameData.rounds--;
-    }
-    updateGameUI();
+    if (result && result.finished) { alert(result.msg || "Training beendet!"); showScreen('training-screen'); }
 }
 
 function confirmNextRound() {
-    const darts = gameData.history.filter(d => d.round === gameData.rounds);
-    if (darts.length === 0) return alert("Wirf erst deine Darts!");
-    
-    gameData.rounds++;
-    // Spezialfall Shanghai: Ziel erhöht sich jede Runde
+    if (gameData.history.filter(d => d.round === gameData.rounds).length === 0) return;
     if (gameData.mode === 'shanghai') gameData.target++;
-    
+    if (gameData.mode === 'bermuda') {
+        const hits = gameData.history.filter(d => d.round === gameData.rounds && d.type !== 'MISS');
+        if (hits.length === 0) gameData.score = Math.floor(gameData.score / 2);
+        gameData.targetIndex++;
+        const bSource = BoardControlGames.bermuda;
+        if (gameData.targetIndex >= bSource.targets.length) { alert("Spiel beendet!"); return showScreen('training-screen'); }
+        gameData.target = bSource.targets[gameData.targetIndex];
+    }
+    gameData.rounds++;
     updateGameUI();
 }
 
@@ -88,14 +131,17 @@ function updateGameUI() {
     document.getElementById('atc-current-target').innerText = gameData.target;
     document.getElementById('atc-rounds').innerText = gameData.rounds;
     document.querySelectorAll('.target-val').forEach(el => el.innerText = gameData.target);
+    const label = document.getElementById('atc-label');
+    label.innerText = (gameData.type === 'finishing') ? "REST" : (gameData.mode === 'shanghai' || gameData.mode === 'bermuda') ? "SCORE: " + gameData.score : "ZIEL";
     
     const darts = gameData.history.filter(d => d.round === gameData.rounds);
     for (let i = 1; i <= 3; i++) {
-        const d = darts[i-1];
-        document.getElementById(`slot-${i}`).innerText = d ? (d.type === 'MISS' ? 'X' : d.type + gameData.target) : '-';
+        document.getElementById(`slot-${i}`).innerText = darts[i-1] ? darts[i-1].type : '-';
         document.getElementById(`atc-dart-${i}`).classList.toggle('spent', i <= darts.length);
     }
-    Dartboard.highlight(gameData.target);
+    if (!isNaN(gameData.target)) Dartboard.highlight(gameData.target);
 }
 
-function exitGame() { if(confirm("Abbrechen?")) showScreen('dashboard-screen'); }
+function exitGame() { if(confirm("Abbrechen?")) showScreen('training-screen'); }
+function undoRound() { gameData.history = gameData.history.filter(d => d.round !== gameData.rounds); updateGameUI(); }
+function undoLastAction() { gameData.history.pop(); updateGameUI(); }
