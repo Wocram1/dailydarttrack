@@ -3,7 +3,7 @@ let gameData = null;
 let pendingGame = null;
 let isSignupMode = false;
 
-const GOOGLE_SCRIPT_URL = "DEINE_APPS_SCRIPT_WEB_APP_URL_HIER";
+const GOOGLE_SCRIPT_URL = "1XfA5fLlmhGKLsUjRkFMJtWBnPQbnu1xCh6o24UvYUqM";
 
 // --- AUTH ---
 function toggleAuthMode() {
