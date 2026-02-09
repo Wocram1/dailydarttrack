@@ -3,7 +3,7 @@ let gameData = null;
 let pendingGame = null;
 let isSignupMode = false;
 
-const GOOGLE_SCRIPT_URL = "1XfA5fLlmhGKLsUjRkFMJtWBnPQbnu1xCh6o24UvYUqM";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx8eZeNE8MMa7zcpmyNNmBBKYlNTqh9xL6RWClxAZV6gd42DYC9a1opymHKiyhuSo1u/exec";
 
 // --- AUTH ---
 function toggleAuthMode() {
