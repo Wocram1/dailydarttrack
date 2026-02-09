@@ -1,159 +1,50 @@
-/* =========================================
-   1. BASIS & VARIABLEN
-   ========================================= */
 :root {
     --bg-dark: #0a0a0a;
     --glass: rgba(255, 255, 255, 0.08);
     --glass-border: rgba(255, 255, 255, 0.12);
     --accent-blue: #0A84FF;
-    --accent-gold: #FFD60A; /* Beige/Gold aus deinem Bild */
+    --accent-gold: #FFD60A;
     --accent-red: #FF453A;
     --text: #ffffff;
-    --ios-grey: #1c1c1e;
-}
-
-* { 
-    box-sizing: border-box; 
-    -webkit-tap-highlight-color: transparent; 
 }
 
 body {
     background-color: var(--bg-dark);
     color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
     margin: 0;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
     overflow: hidden;
 }
 
-.app-container {
-    width: 100%;
-    max-width: 450px;
-    height: 100%;
-    background: radial-gradient(circle at top, #1c1c1e 0%, #0a0a0a 100%);
-    position: relative;
-    display: flex;
-    flex-direction: column;
-}
-
+.app-container { width: 100%; max-width: 450px; height: 100vh; margin: auto; display: flex; flex-direction: column; }
 .hidden { display: none !important; }
 
-/* =========================================
-   2. PANELS & ALLGEMEINE ELEMENTE
-   ========================================= */
-.glass-panel {
-    background: var(--glass);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--glass-border);
-    border-radius: 28px;
-    padding: 30px;
-    margin: 20px;
-    text-align: center;
-}
-
-input {
-    width: 100%;
-    padding: 16px;
-    margin-bottom: 12px;
-    background: rgba(0,0,0,0.3);
-    border: 1px solid var(--glass-border);
-    border-radius: 14px;
-    color: white;
-    font-size: 16px;
-}
-
-button { cursor: pointer; border: none; transition: all 0.2s; font-weight: bold; }
-button:active { transform: scale(0.95); }
-
-.btn-primary { background: var(--accent-blue); color: white; padding: 16px; border-radius: 14px; width: 100%; }
-.btn-secondary { background: transparent; color: #888; padding: 10px; width: 100%; margin-top: 10px; }
-
-/* =========================================
-   3. DASHBOARD & NAVIGATION
-   ========================================= */
-.user-header { padding: 40px 25px 20px; }
-.user-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-.level-badge { background: var(--accent-gold); color: black; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
-
-.xp-bar-bg { width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
-.xp-bar-fill { height: 100%; background: var(--accent-blue); width: 0%; transition: width 0.6s ease; }
-
+/* Dashboard & Menus */
+.glass-panel { background: var(--glass); padding: 30px; border-radius: 28px; margin: 20px; text-align: center; }
 .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; }
-.menu-card { background: var(--glass); padding: 25px; border-radius: 24px; text-align: center; border: 1px solid var(--glass-border); }
-.menu-card.active { border-color: var(--accent-blue); }
-.menu-card.disabled { opacity: 0.4; pointer-events: none; }
+.menu-card { background: var(--glass); padding: 20px; border-radius: 20px; text-align: center; border: 1px solid var(--glass-border); }
 
-/* Kategorien-Menü */
-.screen-header { display: flex; align-items: center; padding: 40px 20px 10px; gap: 15px; }
-.back-btn { background: var(--glass); color: white; width: 40px; height: 40px; border-radius: 50%; }
+/* ATC UI */
+.atc-scoreboard { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; }
+.target-display h1 { font-size: 60px; margin: 0; color: var(--accent-gold); }
 
-.category-grid, .game-list { display: flex; flex-direction: column; gap: 12px; padding: 20px; }
-.cat-btn, .game-item-btn { 
-    background: var(--glass); border: 1px solid var(--glass-border); 
-    color: white; padding: 20px; border-radius: 15px; font-size: 18px; text-align: left; 
-}
-.cat-btn.active { border-color: var(--accent-blue); background: rgba(10, 132, 255, 0.1); }
-.cat-btn.disabled { opacity: 0.3; pointer-events: none; }
+.current-round-display { display: flex; gap: 10px; margin: 15px 0; }
+.dart-score-slot { width: 50px; height: 35px; background: rgba(255,255,255,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
 
-.level-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 20px; }
-.level-btn { aspect-ratio: 1; background: var(--glass); border: 1px solid var(--glass-border); color: white; border-radius: 10px; }
+#dartboard-svg-container { width: 280px; height: 280px; }
+.target-segment { transition: fill 0.3s; }
+.active-target { fill: var(--accent-gold) !important; filter: drop-shadow(0 0 8px var(--accent-gold)); }
+.board-text { fill: white; font-size: 8px; font-weight: bold; pointer-events: none; }
 
-/* =========================================
-   4. GAME UI (ATC & SPECIAL MODES)
-   ========================================= */
-.game-header { display: flex; justify-content: space-between; align-items: center; padding: 40px 20px 0; }
-.exit-btn { background: var(--glass); color: white; width: 40px; height: 40px; border-radius: 50%; }
-
-/* Dart Icons & Animation */
-.dart-indicators { display: flex; gap: 10px; }
-.dart-icon { font-size: 1.2rem; color: var(--accent-gold); transition: all 0.4s ease; transform: rotate(-45deg); }
-.dart-icon.spent { opacity: 0.1; transform: translateY(-20px) scale(0.5); }
-
-/* Scoreboard Around the Clock */
-.atc-scoreboard { text-align: center; padding: 20px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center;}
-.target-display span { color: #888; letter-spacing: 4px; font-size: 14px; }
-.target-display h1 { font-size: 80px; margin: 0; color: var(--accent-gold); }
-
-.heart-container { color: var(--accent-red); font-size: 1.2rem; display: flex; gap: 5px; margin: 10px 0; }
-.round-counter { font-size: 14px; color: #888; }
-
-/* ATC Controls (Numpad-Ersatz) */
-.atc-controls { background: var(--ios-grey); border-radius: 35px 35px 0 0; padding: 20px; }
+/* Controls */
+.atc-controls { background: #1c1c1e; padding: 20px; border-radius: 30px 30px 0 0; }
 .atc-input-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-
-.atc-btn { padding: 25px 10px; border-radius: 15px; font-size: 1.1rem; }
-.hit-btn { background: #e5c276; color: black; } /* Beige-Ton aus Screenshot */
+.atc-btn { padding: 20px; border-radius: 12px; border: none; font-weight: bold; font-size: 1.1rem; }
+.hit-btn { background: #e5c276; color: black; }
 .miss-btn { background: #3a3a3c; color: white; }
 .undo-btn { background: #2c2c2e; color: white; }
 .next-round-btn { grid-column: span 2; background: var(--accent-blue); color: white; }
 
-/* Dartboard Animation Placeholder */
-.board-preview {
-    width: 120px;
-    height: 120px;
-    margin: 10px auto;
-    background: radial-gradient(circle, transparent 30%, rgba(255,214,10,0.1) 100%);
-    border: 2px dashed rgba(255,214,10,0.3);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); opacity: 0.5; }
-    50% { transform: scale(1.05); opacity: 0.8; }
-    100% { transform: scale(1); opacity: 0.5; }
-}
-
-/* Shake Effekt für Undo */
-@keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    75% { transform: translateX(5px); }
-}
-.score-undo { animation: shake 0.2s ease-in-out; color: var(--accent-red) !important; }
+.dart-icon { color: var(--accent-gold); margin-left: 5px; }
+.dart-icon.spent { opacity: 0.2; }
+.heart-container { color: var(--accent-red); font-size: 1.2rem; }
