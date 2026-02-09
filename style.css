@@ -1,63 +1,94 @@
 :root {
-    --bg-dark: #0a0a0a;
-    --glass: rgba(255, 255, 255, 0.07);
-    --glass-border: rgba(255, 255, 255, 0.12);
-    --accent-blue: #0A84FF;
-    --accent-gold: #FFD60A;
+    --neon-blue: #00d4ff;
+    --neon-gold: #ffd60a;
+    --glass-bg: rgba(20, 20, 30, 0.7);
+    --liquid-border: rgba(255, 255, 255, 0.1);
     --text: #ffffff;
 }
 
 body {
-    background-color: var(--bg-dark);
+    background: radial-gradient(circle at center, #1a1a2e 0%, #050505 100%);
     color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    margin: 0;
-    overflow: hidden;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    margin: 0; overflow: hidden;
 }
 
+/* Partikel Hintergrund */
+.particles {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px; z-index: -1;
+    animation: particleMove 60s linear infinite;
+}
+@keyframes particleMove { from { background-position: 0 0; } to { background-position: 400px 400px; } }
+
+/* App Layout */
 .app-container { width: 100%; max-width: 450px; height: 100vh; margin: auto; position: relative; }
 .hidden { display: none !important; }
 
+/* Liquid Glass Panels */
+.liquid-panel, .bottom-nav, .settings-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(25px);
+    border: 1px solid var(--liquid-border);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.liquid-panel {
+    margin: 40px 20px; padding: 40px 25px; border-radius: 35px;
+    animation: slideUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
 /* Auth Styling */
-.auth-toggle { margin-top: 20px; font-size: 0.9rem; opacity: 0.8; text-align: center; }
-.auth-toggle a { color: var(--accent-blue); text-decoration: none; font-weight: bold; margin-left: 5px; }
+.logo-area { text-align: center; margin-bottom: 30px; }
+.neon-icon { font-size: 3rem; color: var(--neon-blue); text-shadow: 0 0 15px var(--neon-blue); margin-bottom: 10px; }
+h1 span { color: var(--neon-blue); }
+.auth-toggle { margin-top: 20px; font-size: 0.85rem; text-align: center; opacity: 0.7; }
+.auth-toggle a { color: var(--neon-blue); text-decoration: none; font-weight: bold; }
 
-/* Navigation */
+/* Bottom Nav Liquid Style */
 .bottom-nav {
-    position: fixed; bottom: 0; width: 100%; max-width: 450px; height: 75px;
-    background: #1c1c1e; display: flex; justify-content: space-around; align-items: center;
-    border-top: 1px solid var(--glass-border); z-index: 100;
+    position: fixed; bottom: 15px; left: 15px; right: 15px; height: 75px;
+    border-radius: 25px; display: flex; justify-content: space-around; align-items: center;
+    z-index: 1000;
 }
-.nav-item { color: #8e8e93; font-size: 0.7rem; text-align: center; cursor: pointer; }
-.nav-item.active { color: var(--accent-blue); }
-.nav-item i { font-size: 1.4rem; display: block; margin-bottom: 4px; }
+.nav-item { color: rgba(255,255,255,0.4); text-align: center; font-size: 0.65rem; transition: all 0.4s; }
+.nav-item i { font-size: 1.5rem; display: block; margin-bottom: 5px; }
+.nav-item.active { color: var(--neon-blue); transform: translateY(-8px) scale(1.1); }
+.nav-item.active::after {
+    content: ''; position: absolute; bottom: -5px; left: 25%; width: 50%; height: 3px;
+    background: var(--neon-blue); box-shadow: 0 0 10px var(--neon-blue); border-radius: 10px;
+}
 
-/* Stats UI */
-.stats-container { padding: 20px; overflow-y: auto; height: calc(100% - 150px); }
+/* Stats & XP */
+.stats-container { padding: 20px; height: 70vh; overflow-y: auto; }
 .xp-card {
-    background: linear-gradient(135deg, #0A84FF, #0056b3);
-    border-radius: 20px; padding: 20px; text-align: center; margin-bottom: 20px;
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(0, 86, 179, 0.2));
+    border: 1px solid var(--neon-blue); border-radius: 25px; padding: 25px; text-align: center; margin-bottom: 20px;
 }
-.xp-bar-bg { background: rgba(0,0,0,0.2); height: 10px; border-radius: 5px; margin: 15px 0; overflow: hidden; }
-.xp-bar-fill { background: var(--accent-gold); height: 100%; transition: width 0.5s ease; }
+.xp-bar-bg { background: rgba(0,0,0,0.3); height: 12px; border-radius: 10px; margin: 15px 0; overflow: hidden; }
+.xp-bar-fill { background: linear-gradient(90deg, var(--neon-blue), #00ff88); height: 100%; transition: width 0.8s; }
 .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-.mini-card { background: var(--glass); border: 1px solid var(--glass-border); padding: 15px; border-radius: 15px; text-align: center; }
-.mini-card span { display: block; font-size: 0.7rem; opacity: 0.6; text-transform: uppercase; margin-bottom: 5px; }
-.mini-card strong { font-size: 1.2rem; color: var(--accent-gold); }
+.mini-card { background: var(--glass); border: 1px solid var(--liquid-border); padding: 18px; border-radius: 20px; text-align: center; }
+.mini-card strong { color: var(--neon-gold); font-size: 1.3rem; }
 
-/* Game Elements */
-.atc-scoreboard { text-align: center; padding: 20px 0; }
-.target-display h1 { font-size: 5rem; margin: 0; color: var(--accent-gold); line-height: 1; }
-.current-round-display { display: flex; gap: 10px; justify-content: center; margin: 25px 0; }
-.dart-score-slot { width: 65px; height: 45px; background: var(--glass); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 1px solid var(--glass-border); }
-.atc-controls { position: absolute; bottom: 0; width: 100%; background: #1c1c1e; padding: 20px; border-radius: 30px 30px 0 0; box-sizing: border-box; }
-.atc-input-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.atc-btn { padding: 20px; border-radius: 15px; border: none; background: #2c2c2e; color: white; font-weight: bold; font-size: 1.1rem; }
-.hit-btn { background: var(--accent-gold); color: black; }
-.next-round-btn { grid-column: span 2; background: var(--accent-blue); }
+/* Gaming Buttons */
+.btn-neon {
+    width: 100%; padding: 16px; background: transparent; border: 2px solid var(--neon-blue);
+    border-radius: 15px; color: var(--neon-blue); font-weight: bold; letter-spacing: 1.5px;
+    cursor: pointer; transition: 0.3s;
+}
+.btn-neon:active { transform: scale(0.95); }
 
-/* Utility */
-.cat-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 18px; padding: 20px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-.btn-primary { width: 100%; padding: 16px; background: var(--accent-blue); border: none; border-radius: 14px; color: white; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 10px; }
-.btn-secondary { width: 100%; padding: 16px; background: rgba(255,255,255,0.1); border: none; border-radius: 14px; color: white; margin-top: 10px; }
-.input-group input { width: 100%; padding: 16px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 12px; color: white; margin-bottom: 12px; box-sizing: border-box; }
+/* Animationen */
+@keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+.float-anim { text-align: center; margin-top: 35vh; opacity: 0.6; animation: floating 3s ease-in-out infinite; }
+@keyframes floating { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+
+/* Confetti */
+.confetti { position: absolute; width: 8px; height: 8px; border-radius: 2px; z-index: 2000; animation: fall 3s linear forwards; }
+@keyframes fall { to { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+
+/* Game UI Update */
+.atc- scoreboard h1 { font-size: 6rem; text-shadow: 0 0 20px var(--neon-gold); margin: 0; }
+.dart-score-slot { background: rgba(255,255,255,0.05); border: 1px solid var(--liquid-border); color: var(--neon-blue); }

@@ -3,7 +3,26 @@ let gameData = null;
 let pendingGame = null;
 let isSignupMode = false;
 
+// DEINE URL HIER EINTRAGEN
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx8eZeNE8MMa7zcpmyNNmBBKYlNTqh9xL6RWClxAZV6gd42DYC9a1opymHKiyhuSo1u/exec";
+
+// --- KONFETTI EFFEKT ---
+function spawnConfetti() {
+    const container = document.getElementById('confetti-container');
+    const colors = ['#00d4ff', '#ffd60a', '#00ff88', '#ff0055', '#ffffff'];
+    for (let i = 0; i < 50; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'confetti';
+        particle.style.left = Math.random() * 100 + 'vw';
+        particle.style.top = '-10px';
+        particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        particle.style.width = Math.random() * 8 + 5 + 'px';
+        particle.style.height = particle.style.width;
+        particle.style.animationDelay = Math.random() * 2 + 's';
+        container.appendChild(particle);
+        setTimeout(() => particle.remove(), 5000);
+    }
+}
 
 // --- AUTH ---
 function toggleAuthMode() {
@@ -11,14 +30,15 @@ function toggleAuthMode() {
     document.getElementById('invite-code').classList.toggle('hidden', !isSignupMode);
     document.getElementById('login-btn').classList.toggle('hidden', isSignupMode);
     document.getElementById('signup-btn').classList.toggle('hidden', !isSignupMode);
-    document.getElementById('toggle-text').innerText = isSignupMode ? "Bereits registriert?" : "Noch keinen Account?";
-    document.getElementById('toggle-link').innerText = isSignupMode ? "Zum Login" : "Jetzt registrieren";
+    document.getElementById('toggle-text').innerText = isSignupMode ? "Already verified?" : "New user?";
+    document.getElementById('toggle-link').innerText = isSignupMode ? "LOGIN" : "REGISTER";
 }
 
 async function login() {
     const user = document.getElementById('username').value;
     const pass = document.getElementById('password').value;
-    
+    if(!user || !pass) return alert("Fill all fields");
+
     try {
         const response = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
@@ -27,9 +47,10 @@ async function login() {
         const result = await response.json();
         if (result.success) {
             currentUser = result.user;
+            document.getElementById('login-screen').classList.add('hidden');
             showScreen('training-screen');
         } else alert(result.message);
-    } catch (e) { alert("Serverfehler"); }
+    } catch (e) { alert("Link failure"); }
 }
 
 async function signup() {
@@ -44,49 +65,62 @@ async function signup() {
         });
         const result = await response.json();
         if (result.success) {
-            alert("Erfolg! Bitte einloggen.");
+            spawnConfetti();
+            alert("Account created! Please login.");
             toggleAuthMode();
         } else alert(result.message);
-    } catch (e) { alert("Serverfehler"); }
+    } catch (e) { alert("Link failure"); }
 }
 
-// --- GAME LOGIC ---
+// --- NAVIGATION ---
+function showScreen(id) {
+    document.getElementById('main-nav').classList.toggle('hidden', id === 'login-screen' || id === 'atc-game-screen');
+    const main = document.getElementById('main-content');
+    main.classList.remove('hidden');
+    document.getElementById('welcome-msg').classList.add('hidden');
+
+    document.querySelectorAll('#main-content section').forEach(s => s.classList.add('hidden'));
+    const target = document.getElementById(id);
+    if(target) {
+        target.classList.remove('hidden');
+        target.style.animation = "slideUp 0.5s ease-out";
+    }
+
+    document.querySelectorAll('.nav-item').forEach(item => {
+        const span = item.querySelector('span').innerText.toLowerCase();
+        const activeMap = { 'core': 'training-screen', 'data': 'stats-screen', 'play': 'quickplay-screen', 'quests': 'challenge-screen' };
+        item.classList.toggle('active', activeMap[span] === id);
+    });
+
+    if (id === 'training-screen') renderCategories();
+    if (id === 'stats-screen') renderStats();
+}
+
+// --- TRAINING LOGIC ---
 const Categories = {
     boardControl: { name: "Board Control", source: BoardControlGames },
     finishing: { name: "Finishing", source: FinishingGames },
     scoring: { name: "Scoring", source: ScoringGames }
 };
 
-function showScreen(id) {
-    document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
-    document.getElementById(id).classList.remove('hidden');
-    document.getElementById('main-nav').classList.toggle('hidden', id === 'login-screen' || id === 'atc-game-screen' || id === 'settings-screen');
-    
-    if (id === 'training-screen') renderCategories();
-    if (id === 'stats-screen') renderStats();
-}
-
 function renderCategories() {
-    const container = document.getElementById('category-list');
-    container.innerHTML = '';
-    document.getElementById('game-selection-list').classList.add('hidden');
-    container.classList.remove('hidden');
-    if(currentUser) document.getElementById('display-username').innerText = `Hi, ${currentUser.username}`;
+    const container = document.getElementById('training-screen');
+    container.innerHTML = `<header class="section-header"><h2>CORE TRAINING</h2></header><div class="category-stack" id="cat-list"></div>`;
+    const catList = document.getElementById('cat-list');
 
     Object.keys(Categories).forEach(key => {
         const card = document.createElement('div');
         card.className = 'cat-card';
         card.innerHTML = `<span>${Categories[key].name}</span> <i class="fa-solid fa-chevron-right"></i>`;
         card.onclick = () => renderGames(key);
-        container.appendChild(card);
+        catList.appendChild(card);
     });
 }
 
 function renderGames(catKey) {
-    const container = document.getElementById('games-container');
-    container.innerHTML = '';
-    document.getElementById('category-list').classList.add('hidden');
-    document.getElementById('game-selection-list').classList.remove('hidden');
+    const container = document.getElementById('training-screen');
+    container.innerHTML = `<button class="btn-neon" style="margin-bottom:20px" onclick="renderCategories()"><i class="fa-solid fa-chevron-left"></i> BACK</button><div class="category-stack" id="games-list"></div>`;
+    const gamesList = document.getElementById('games-list');
 
     const source = Categories[catKey].source;
     Object.keys(source).forEach(gameKey => {
@@ -94,30 +128,27 @@ function renderGames(catKey) {
         card.className = 'cat-card';
         card.innerHTML = `<span><i class="fa-solid ${source[gameKey].icon}"></i> ${source[gameKey].name}</span>`;
         card.onclick = () => openGameSettings(catKey, gameKey);
-        container.appendChild(card);
+        gamesList.appendChild(card);
     });
 }
 
 function openGameSettings(catKey, gameKey) {
-    const game = Categories[catKey].source[gameKey];
     pendingGame = { catKey, gameKey };
-    document.getElementById('settings-title').innerText = game.name;
-    const content = document.getElementById('settings-content');
-    content.innerHTML = '';
-
-    game.config.forEach(conf => {
-        const row = document.createElement('div');
-        row.className = 'setting-row';
-        row.innerHTML = `<label>${conf.label}</label>`;
-        if (conf.type === 'select') {
-            let opts = conf.options.map(o => `<option value="${o}">${o}</option>`).join('');
-            row.innerHTML += `<select id="conf-${conf.id}">${opts}</select>`;
-        } else {
-            row.innerHTML += `<input type="number" id="conf-${conf.id}" value="${conf.default}">`;
-        }
-        content.appendChild(row);
-    });
     showScreen('settings-screen');
+    const game = Categories[catKey].source[gameKey];
+    const content = document.getElementById('settings-screen');
+    content.innerHTML = `
+        <div class="liquid-panel">
+            <h2>${game.name}</h2>
+            <div id="settings-content"></div>
+            <button class="btn-neon" onclick="launchGame()">START MISSION</button>
+            <button class="btn-secondary" onclick="showScreen('training-screen')">ABORT</button>
+        </div>
+    `;
+    const form = document.getElementById('settings-content');
+    game.config.forEach(conf => {
+        form.innerHTML += `<div class="setting-row"><label>${conf.label}</label><input type="number" id="conf-${conf.id}" value="${conf.default}"></div>`;
+    });
 }
 
 function launchGame() {
@@ -153,27 +184,24 @@ function processInput(hitType) {
 }
 
 async function finishSession() {
+    spawnConfetti();
     const totalXP = (gameData.match_stats.hits_1 * 5) + (gameData.match_stats.doubles * 15) + (gameData.match_stats.triples * 25) + 50;
     
     try {
         const response = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
-            body: JSON.stringify({
-                action: 'saveMatch',
-                username: currentUser.username,
-                xp_gain: totalXP,
-                match_stats: gameData.match_stats
-            })
+            body: JSON.stringify({ action: 'saveMatch', username: currentUser.username, xp_gain: totalXP, match_stats: gameData.match_stats })
         });
         const res = await response.json();
         if (res.success) {
+            if(res.newLevel > currentUser.level) spawnConfetti(); // Doppel Konfetti bei Level Up
             currentUser.xp = res.newXP;
             currentUser.level = res.newLevel;
             currentUser.stats = res.stats;
         }
     } catch (e) { console.error("Sync Error"); }
     
-    alert(`Training beendet! +${totalXP} XP`);
+    alert(`MISSION COMPLETE! +${totalXP} XP`);
     showScreen('training-screen');
 }
 
@@ -181,14 +209,13 @@ function renderStats() {
     const container = document.getElementById('stats-screen');
     if (!currentUser) return;
     const progress = (currentUser.xp % 1000) / 10;
-
     container.innerHTML = `
-        <header class="section-header"><h2>Statistiken</h2></header>
+        <header class="section-header"><h2>USER DATA</h2></header>
         <div class="stats-container">
             <div class="xp-card">
-                <h3>Level ${currentUser.level}</h3>
+                <h3>LEVEL ${currentUser.level}</h3>
                 <div class="xp-bar-bg"><div class="xp-bar-fill" style="width: ${progress}%"></div></div>
-                <p>${currentUser.xp} / ${currentUser.level * 1000} XP</p>
+                <p>${currentUser.xp} XP COLLECTED</p>
             </div>
             <div class="stats-grid">
                 <div class="mini-card"><span>Darts</span><strong>${currentUser.stats.throws || 0}</strong></div>
@@ -212,11 +239,6 @@ function updateGameUI() {
     if (!isNaN(gameData.target)) Dartboard.highlight(gameData.target);
 }
 
-function backToCategories() { renderCategories(); }
-function exitGame() { if(confirm("Abbrechen?")) showScreen('training-screen'); }
+function exitGame() { if(confirm("ABORT MISSION?")) showScreen('training-screen'); }
 function undoLastAction() { gameData.history.pop(); updateGameUI(); }
-function confirmNextRound() { 
-    if (gameData.history.filter(d => d.round === gameData.rounds).length > 0) {
-        gameData.rounds++; updateGameUI(); 
-    }
-}
+function confirmNextRound() { if (gameData.history.filter(d => d.round === gameData.rounds).length > 0) { gameData.rounds++; updateGameUI(); } }
