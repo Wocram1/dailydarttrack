@@ -3,24 +3,22 @@ let gameData = null;
 let pendingGame = null;
 let isSignupMode = false;
 
-// DEINE URL HIER EINTRAGEN
+// URL DEINER GOOGLE APPS SCRIPT WEB-APP HIER EINTRAGEN
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx8eZeNE8MMa7zcpmyNNmBBKYlNTqh9xL6RWClxAZV6gd42DYC9a1opymHKiyhuSo1u/exec";
 
-// --- KONFETTI EFFEKT ---
+// --- FX ---
 function spawnConfetti() {
     const container = document.getElementById('confetti-container');
     const colors = ['#00d4ff', '#ffd60a', '#00ff88', '#ff0055', '#ffffff'];
-    for (let i = 0; i < 50; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'confetti';
-        particle.style.left = Math.random() * 100 + 'vw';
-        particle.style.top = '-10px';
-        particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-        particle.style.width = Math.random() * 8 + 5 + 'px';
-        particle.style.height = particle.style.width;
-        particle.style.animationDelay = Math.random() * 2 + 's';
-        container.appendChild(particle);
-        setTimeout(() => particle.remove(), 5000);
+    for (let i = 0; i < 40; i++) {
+        const p = document.createElement('div');
+        p.className = 'confetti';
+        p.style.left = Math.random() * 100 + 'vw';
+        p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        p.style.width = p.style.height = Math.random() * 8 + 5 + 'px';
+        p.style.animationDelay = Math.random() * 2 + 's';
+        container.appendChild(p);
+        setTimeout(() => p.remove(), 4000);
     }
 }
 
@@ -30,127 +28,112 @@ function toggleAuthMode() {
     document.getElementById('invite-code').classList.toggle('hidden', !isSignupMode);
     document.getElementById('login-btn').classList.toggle('hidden', isSignupMode);
     document.getElementById('signup-btn').classList.toggle('hidden', !isSignupMode);
-    document.getElementById('toggle-text').innerText = isSignupMode ? "Already verified?" : "New user?";
-    document.getElementById('toggle-link').innerText = isSignupMode ? "LOGIN" : "REGISTER";
 }
 
 async function login() {
     const user = document.getElementById('username').value;
     const pass = document.getElementById('password').value;
-    if(!user || !pass) return alert("Fill all fields");
-
     try {
-        const response = await fetch(GOOGLE_SCRIPT_URL, {
+        const res = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({ action: 'login', username: user, password: pass })
         });
-        const result = await response.json();
+        const result = await res.json();
         if (result.success) {
             currentUser = result.user;
             document.getElementById('login-screen').classList.add('hidden');
             showScreen('training-screen');
         } else alert(result.message);
-    } catch (e) { alert("Link failure"); }
+    } catch (e) { alert("Connection Error"); }
 }
 
 async function signup() {
     const user = document.getElementById('username').value;
     const pass = document.getElementById('password').value;
     const invite = document.getElementById('invite-code').value;
-    
     try {
-        const response = await fetch(GOOGLE_SCRIPT_URL, {
+        const res = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({ action: 'signup', username: user, password: pass, inviteCode: invite })
         });
-        const result = await response.json();
+        const result = await res.json();
         if (result.success) {
-            spawnConfetti();
-            alert("Account created! Please login.");
-            toggleAuthMode();
+            spawnConfetti(); alert("Account Created! Login now."); toggleAuthMode();
         } else alert(result.message);
-    } catch (e) { alert("Link failure"); }
+    } catch (e) { alert("Connection Error"); }
 }
 
-// --- NAVIGATION ---
+// --- NAVIGATION & RENDERING ---
 function showScreen(id) {
+    const board = document.getElementById('dartboard-svg-container');
+    if(board) board.innerHTML = ''; // Bugfix: Dartboard beim Wechsel killen
+
     document.getElementById('main-nav').classList.toggle('hidden', id === 'login-screen' || id === 'atc-game-screen');
     const main = document.getElementById('main-content');
+    const container = document.getElementById('screen-container');
+    
     main.classList.remove('hidden');
-    document.getElementById('welcome-msg').classList.add('hidden');
+    container.innerHTML = ''; 
 
-    document.querySelectorAll('#main-content section').forEach(s => s.classList.add('hidden'));
-    const target = document.getElementById(id);
-    if(target) {
-        target.classList.remove('hidden');
-        target.style.animation = "slideUp 0.5s ease-out";
+    if (id === 'training-screen') renderTrainingCategories();
+    else if (id === 'stats-screen') renderStats();
+    else if (id === 'quickplay-screen' || id === 'challenge-screen') {
+        container.innerHTML = `<div class="float-anim"><i class="fa-solid fa-gears neon-blue" style="font-size:3rem"></i><p>COMMING SOON</p></div>`;
     }
 
+    // Active Nav Status
     document.querySelectorAll('.nav-item').forEach(item => {
-        const span = item.querySelector('span').innerText.toLowerCase();
-        const activeMap = { 'core': 'training-screen', 'data': 'stats-screen', 'play': 'quickplay-screen', 'quests': 'challenge-screen' };
-        item.classList.toggle('active', activeMap[span] === id);
+        const text = item.querySelector('span').innerText.toLowerCase();
+        const map = { 'training': 'training-screen', 'stats': 'stats-screen', 'quickplay': 'quickplay-screen', 'challenge': 'challenge-screen' };
+        item.classList.toggle('active', map[text] === id);
     });
-
-    if (id === 'training-screen') renderCategories();
-    if (id === 'stats-screen') renderStats();
 }
 
-// --- TRAINING LOGIC ---
+function renderTrainingCategories() {
+    const container = document.getElementById('screen-container');
+    container.innerHTML = `<h2>TRAINING</h2><div class="game-grid">
+        <div class="game-card" onclick="renderGamesList('boardControl')"><i class="fa-solid fa-bullseye"></i><span>Control</span></div>
+        <div class="game-card" onclick="renderGamesList('finishing')"><i class="fa-solid fa-flag-checkered"></i><span>Finishing</span></div>
+        <div class="game-card" onclick="renderGamesList('scoring')"><i class="fa-solid fa-bolt"></i><span>Scoring</span></div>
+    </div>`;
+}
+
+function renderGamesList(catKey) {
+    const container = document.getElementById('screen-container');
+    container.innerHTML = `<button class="btn-neon" style="margin-bottom:20px" onclick="renderTrainingCategories()">BACK</button><div class="game-grid" id="g-grid"></div>`;
+    const grid = document.getElementById('g-grid');
+    const source = Categories[catKey].source;
+    Object.keys(source).forEach(key => {
+        const game = source[key];
+        grid.innerHTML += `<div class="game-card" onclick="openGameSettings('${catKey}', '${key}')">
+            <i class="fa-solid ${game.icon || 'fa-gamepad'}"></i><span>${game.name}</span>
+        </div>`;
+    });
+}
+
 const Categories = {
-    boardControl: { name: "Board Control", source: BoardControlGames },
+    boardControl: { name: "Control", source: BoardControlGames },
     finishing: { name: "Finishing", source: FinishingGames },
     scoring: { name: "Scoring", source: ScoringGames }
 };
 
-function renderCategories() {
-    const container = document.getElementById('training-screen');
-    container.innerHTML = `<header class="section-header"><h2>CORE TRAINING</h2></header><div class="category-stack" id="cat-list"></div>`;
-    const catList = document.getElementById('cat-list');
-
-    Object.keys(Categories).forEach(key => {
-        const card = document.createElement('div');
-        card.className = 'cat-card';
-        card.innerHTML = `<span>${Categories[key].name}</span> <i class="fa-solid fa-chevron-right"></i>`;
-        card.onclick = () => renderGames(key);
-        catList.appendChild(card);
-    });
-}
-
-function renderGames(catKey) {
-    const container = document.getElementById('training-screen');
-    container.innerHTML = `<button class="btn-neon" style="margin-bottom:20px" onclick="renderCategories()"><i class="fa-solid fa-chevron-left"></i> BACK</button><div class="category-stack" id="games-list"></div>`;
-    const gamesList = document.getElementById('games-list');
-
-    const source = Categories[catKey].source;
-    Object.keys(source).forEach(gameKey => {
-        const card = document.createElement('div');
-        card.className = 'cat-card';
-        card.innerHTML = `<span><i class="fa-solid ${source[gameKey].icon}"></i> ${source[gameKey].name}</span>`;
-        card.onclick = () => openGameSettings(catKey, gameKey);
-        gamesList.appendChild(card);
-    });
-}
-
 function openGameSettings(catKey, gameKey) {
     pendingGame = { catKey, gameKey };
-    showScreen('settings-screen');
     const game = Categories[catKey].source[gameKey];
-    const content = document.getElementById('settings-screen');
-    content.innerHTML = `
-        <div class="liquid-panel">
-            <h2>${game.name}</h2>
-            <div id="settings-content"></div>
-            <button class="btn-neon" onclick="launchGame()">START MISSION</button>
-            <button class="btn-secondary" onclick="showScreen('training-screen')">ABORT</button>
-        </div>
-    `;
-    const form = document.getElementById('settings-content');
+    const container = document.getElementById('screen-container');
+    container.innerHTML = `<div class="liquid-panel">
+        <h2>${game.name}</h2>
+        <div id="set-form"></div>
+        <button class="btn-neon" onclick="launchGame()">START MISSION</button>
+        <button class="btn-neon" style="border-color:rgba(255,255,255,0.1); color:white; margin-top:10px" onclick="renderGamesList('${catKey}')">CANCEL</button>
+    </div>`;
     game.config.forEach(conf => {
-        form.innerHTML += `<div class="setting-row"><label>${conf.label}</label><input type="number" id="conf-${conf.id}" value="${conf.default}"></div>`;
+        document.getElementById('set-form').innerHTML += `<div style="margin-bottom:15px"><label style="display:block; font-size:0.7rem; opacity:0.6; margin-bottom:5px">${conf.label}</label>
+        <input type="number" id="conf-${conf.id}" value="${conf.default}" style="width:100%; padding:10px; background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); color:white; border-radius:8px"></div>`;
     });
 }
 
+// --- GAMEPLAY ---
 function launchGame() {
     const { catKey, gameKey } = pendingGame;
     const source = Categories[catKey].source[gameKey];
@@ -161,7 +144,7 @@ function launchGame() {
     gameData.catKey = catKey;
     gameData.match_stats = { throws: 0, hits_1: 0, hits_2: 0, hits_3: 0, doubles: 0, triples: 0 };
     
-    document.getElementById('atc-mode-name').innerText = source.name;
+    document.getElementById('atc-mode-name').innerText = source.name.toUpperCase();
     Dartboard.render('dartboard-svg-container');
     updateGameUI();
     showScreen('atc-game-screen');
@@ -186,59 +169,53 @@ function processInput(hitType) {
 async function finishSession() {
     spawnConfetti();
     const totalXP = (gameData.match_stats.hits_1 * 5) + (gameData.match_stats.doubles * 15) + (gameData.match_stats.triples * 25) + 50;
-    
     try {
-        const response = await fetch(GOOGLE_SCRIPT_URL, {
+        const res = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({ action: 'saveMatch', username: currentUser.username, xp_gain: totalXP, match_stats: gameData.match_stats })
         });
-        const res = await response.json();
-        if (res.success) {
-            if(res.newLevel > currentUser.level) spawnConfetti(); // Doppel Konfetti bei Level Up
-            currentUser.xp = res.newXP;
-            currentUser.level = res.newLevel;
-            currentUser.stats = res.stats;
+        const r = await res.json();
+        if (r.success) {
+            if(r.newLevel > currentUser.level) spawnConfetti();
+            currentUser.xp = r.newXP; currentUser.level = r.newLevel; currentUser.stats = r.stats;
         }
-    } catch (e) { console.error("Sync Error"); }
-    
+    } catch (e) { console.error("Sync fail"); }
     alert(`MISSION COMPLETE! +${totalXP} XP`);
     showScreen('training-screen');
-}
-
-function renderStats() {
-    const container = document.getElementById('stats-screen');
-    if (!currentUser) return;
-    const progress = (currentUser.xp % 1000) / 10;
-    container.innerHTML = `
-        <header class="section-header"><h2>USER DATA</h2></header>
-        <div class="stats-container">
-            <div class="xp-card">
-                <h3>LEVEL ${currentUser.level}</h3>
-                <div class="xp-bar-bg"><div class="xp-bar-fill" style="width: ${progress}%"></div></div>
-                <p>${currentUser.xp} XP COLLECTED</p>
-            </div>
-            <div class="stats-grid">
-                <div class="mini-card"><span>Darts</span><strong>${currentUser.stats.throws || 0}</strong></div>
-                <div class="mini-card"><span>Singles</span><strong>${currentUser.stats.hits_1 || 0}</strong></div>
-                <div class="mini-card"><span>Doubles</span><strong>${currentUser.stats.doubles || 0}</strong></div>
-                <div class="mini-card"><span>Triples</span><strong>${currentUser.stats.triples || 0}</strong></div>
-            </div>
-        </div>
-    `;
 }
 
 function updateGameUI() {
     document.getElementById('atc-current-target').innerText = gameData.target;
     document.getElementById('atc-rounds').innerText = gameData.rounds;
     document.querySelectorAll('.target-val').forEach(el => el.innerText = gameData.target);
+    
     const darts = gameData.history.filter(d => d.round === gameData.rounds);
     for (let i = 1; i <= 3; i++) {
-        document.getElementById(`slot-${i}`).innerText = darts[i-1] ? darts[i-1].type : '-';
         document.getElementById(`atc-dart-${i}`).classList.toggle('spent', i <= darts.length);
+        const slot = document.getElementById(`slot-${i}`);
+        slot.innerText = darts[i-1] ? darts[i-1].type : '-';
+        slot.style.borderColor = darts[i-1] ? 'var(--neon-blue)' : 'var(--glass-border)';
     }
-    if (!isNaN(gameData.target)) Dartboard.highlight(gameData.target);
+    if (typeof Dartboard !== 'undefined' && !isNaN(gameData.target)) Dartboard.highlight(gameData.target);
 }
 
-function exitGame() { if(confirm("ABORT MISSION?")) showScreen('training-screen'); }
+function renderStats() {
+    const container = document.getElementById('screen-container');
+    if (!currentUser) return;
+    const progress = (currentUser.xp % 1000) / 10;
+    container.innerHTML = `<h2>USER DATA</h2><div class="xp-card">
+        <h3>LEVEL ${currentUser.level}</h3>
+        <div class="xp-bar-bg"><div class="xp-bar-fill" style="width:${progress}%"></div></div>
+        <p style="font-size:0.7rem; opacity:0.5">${currentUser.xp} TOTAL XP</p>
+    </div>
+    <div class="game-grid">
+        <div class="mini-card"><span>Darts</span><strong>${currentUser.stats.throws || 0}</strong></div>
+        <div class="mini-card"><span>Singles</span><strong>${currentUser.stats.hits_1 || 0}</strong></div>
+        <div class="mini-card"><span>Doubles</span><strong>${currentUser.stats.doubles || 0}</strong></div>
+        <div class="mini-card"><span>Triples</span><strong>${currentUser.stats.triples || 0}</strong></div>
+    </div>`;
+}
+
+function exitGame() { if(confirm("ABORT?")) showScreen('training-screen'); }
 function undoLastAction() { gameData.history.pop(); updateGameUI(); }
 function confirmNextRound() { if (gameData.history.filter(d => d.round === gameData.rounds).length > 0) { gameData.rounds++; updateGameUI(); } }
