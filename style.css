@@ -3,85 +3,81 @@
     --neon-gold: #ffd60a;
     --glass: rgba(255, 255, 255, 0.05);
     --glass-border: rgba(255, 255, 255, 0.1);
-    --glass-bg: rgba(20, 20, 30, 0.8);
+    --glass-bg: rgba(20, 20, 30, 0.85);
     --text: #ffffff;
 }
+
+/* GRUND-LAYOUT FIXES */
+.hidden { display: none !important; }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body { 
     background: radial-gradient(circle at center, #1a1a2e 0%, #050508 100%); 
-    color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; 
+    color: var(--text); font-family: 'Segoe UI', sans-serif; 
     margin: 0; height: 100vh; overflow: hidden; 
 }
 
 .app-container { width: 100%; max-width: 450px; height: 100vh; margin: auto; position: relative; display: flex; flex-direction: column; }
 
-/* FX & Background */
-.particles { position: fixed; inset: 0; background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 40px 40px; z-index: -1; animation: particleMove 60s linear infinite; }
-@keyframes particleMove { from { background-position: 0 0; } to { background-position: 400px 400px; } }
-.confetti { position: absolute; z-index: 2000; animation: fall 3s linear forwards; }
-@keyframes fall { to { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+section, main { width: 100%; height: 100%; position: absolute; top: 0; left: 0; overflow-y: auto; }
 
-/* Liquid Panels */
-.liquid-panel, .bottom-nav, .scoring-interface { 
-    background: var(--glass-bg); backdrop-filter: blur(25px); 
-    border: 1px solid var(--glass-border); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); 
+/* NAVIGATION */
+.bottom-nav { 
+    position: fixed !important; bottom: 15px; left: 15px; right: 15px; height: 70px; 
+    background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid var(--glass-border);
+    border-radius: 20px; display: flex; align-items: center; z-index: 1000; 
 }
-.liquid-panel { margin: 40px 20px; padding: 40px 25px; border-radius: 35px; animation: slideUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); }
-
-/* Grid Navigation (Training & Games) */
-#main-content { flex: 1; padding: 20px; padding-bottom: 100px; overflow-y: auto; width: 100%; }
-.game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; animation: slideUp 0.4s ease; }
-.game-card { 
-    background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; 
-    padding: 20px; text-align: center; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-    cursor: pointer; 
-}
-.game-card:active { transform: scale(1.05) translateY(-5px); border-color: var(--neon-blue); box-shadow: 0 10px 20px rgba(0, 212, 255, 0.2); }
-.game-card i { font-size: 2rem; color: var(--neon-blue); margin-bottom: 10px; display: block; }
-.game-card span { font-weight: bold; font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase; }
-
-/* Scoring Interface */
-.scoring-interface { position: fixed; bottom: 0; width: 100%; max-width: 450px; padding: 20px 15px 40px; border-radius: 40px 40px 0 0; }
-.score-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 15px; }
-.score-tile { 
-    background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; 
-    padding: 15px; color: white; display: flex; flex-direction: column; align-items: center; 
-    transition: 0.2s; cursor: pointer; min-height: 80px; 
-}
-.score-tile:active { transform: scale(0.92); filter: brightness(1.3); }
-.score-tile.double { border-color: #ff4757; color: #ff4757; }
-.score-tile.triple { border-color: var(--neon-gold); color: var(--neon-gold); }
-.score-tile.miss { grid-column: span 2; opacity: 0.6; min-height: 60px; }
-.score-tile .multiplier { font-size: 0.6rem; letter-spacing: 2px; opacity: 0.6; margin-bottom: 5px; }
-.score-tile .val { font-size: 1.5rem; font-weight: 900; }
-
-.action-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 12px; }
-.action-btn { border: none; border-radius: 15px; padding: 15px; font-weight: bold; font-size: 0.8rem; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
-.action-btn.undo { background: rgba(255, 255, 255, 0.1); }
-.action-btn.next { background: var(--neon-blue); box-shadow: 0 5px 15px rgba(0, 212, 255, 0.3); }
-
-/* Game Elements */
-#atc-game-screen { position: fixed; inset: 0; background: #050508; z-index: 2000; display: flex; flex-direction: column; }
-.game-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; padding: 20px; }
-.target-card h1 { font-size: 5rem; margin: 0; color: var(--neon-gold); text-shadow: 0 0 20px rgba(255, 214, 10, 0.4); }
-.slot-container { display: flex; gap: 10px; margin: 20px 0; }
-.slot { width: 60px; height: 50px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 900; color: var(--neon-blue); }
-.d-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.1); transition: 0.3s; }
-.d-dot.spent { background: var(--neon-blue); box-shadow: 0 0 10px var(--neon-blue); }
-#dartboard-svg-container { width: 100%; max-width: 300px; height: 300px; }
-
-/* Nav */
-.bottom-nav { position: absolute; bottom: 15px; left: 15px; right: 15px; height: 70px; border-radius: 20px; display: flex; align-items: center; z-index: 100; }
-.nav-item { flex: 1; color: rgba(255,255,255,0.3); text-align: center; font-size: 0.65rem; transition: 0.3s; }
+.nav-item { flex: 1; color: rgba(255,255,255,0.3); text-align: center; font-size: 0.65rem; cursor: pointer; transition: 0.3s; }
 .nav-item i { font-size: 1.4rem; display: block; margin-bottom: 4px; }
 .nav-item.active { color: var(--neon-blue); transform: translateY(-5px); }
 
-/* Animations */
-@keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-.float-anim { text-align: center; margin-top: 35vh; opacity: 0.5; animation: floating 3s ease-in-out infinite; }
-@keyframes floating { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+/* GRID FÜR TRAINING & SPIELE */
+#main-content { padding: 20px 20px 100px 20px; }
+.game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+.game-card { 
+    background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; 
+    padding: 25px 15px; text-align: center; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer; 
+}
+.game-card:active, .game-card:hover { 
+    transform: scale(1.05); background: rgba(0, 212, 255, 0.1); 
+    border-color: var(--neon-blue); box-shadow: 0 0 20px rgba(0, 212, 255, 0.2); 
+}
+.game-card i { font-size: 2.2rem; color: var(--neon-blue); margin-bottom: 12px; display: block; }
+.game-card span { font-weight: bold; font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase; }
 
-/* Inputs */
-.input-group input { width: 100%; padding: 15px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 12px; color: white; margin-bottom: 12px; }
-.btn-neon { width: 100%; padding: 15px; background: transparent; border: 2px solid var(--neon-blue); border-radius: 12px; color: var(--neon-blue); font-weight: 800; cursor: pointer; }
+/* SCORING INTERFACE */
+#atc-game-screen { background: #050508; z-index: 2000; display: flex; flex-direction: column; overflow: hidden; }
+.game-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; padding: 20px; padding-bottom: 240px; }
+.target-card h1 { font-size: 5rem; margin: 0; color: var(--neon-gold); text-shadow: 0 0 20px rgba(255, 214, 10, 0.4); }
+
+.scoring-interface { 
+    position: fixed; bottom: 0; width: 100%; max-width: 450px; 
+    padding: 20px 15px 40px; background: var(--glass-bg); backdrop-filter: blur(30px);
+    border-radius: 35px 35px 0 0; border-top: 1px solid var(--glass-border); z-index: 2100;
+}
+.score-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+.score-tile { 
+    background: var(--glass); border: 1px solid var(--glass-border); border-radius: 15px; 
+    padding: 12px; color: white; transition: 0.2s; cursor: pointer; 
+}
+.score-tile:active { transform: scale(0.95); background: rgba(255,255,255,0.1); }
+.score-tile.double { border-color: #ff4757; color: #ff4757; }
+.score-tile.triple { border-color: var(--neon-gold); color: var(--neon-gold); }
+.score-tile.miss { grid-column: span 2; opacity: 0.6; }
+.score-tile .multiplier { font-size: 0.6rem; display: block; opacity: 0.7; }
+.score-tile .val { font-size: 1.4rem; font-weight: bold; }
+
+.action-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; }
+.action-btn { border: none; border-radius: 12px; padding: 15px; font-weight: bold; color: white; cursor: pointer; }
+.action-btn.undo { background: rgba(255,255,255,0.1); }
+.action-btn.next { background: var(--neon-blue); }
+
+/* DARTBOARD SCALING */
+#dartboard-svg-container { width: 280px; height: 280px; margin: 0 auto; }
+.slot-container { display: flex; gap: 10px; margin-bottom: 10px; }
+.slot { width: 55px; height: 45px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--neon-blue); }
+
+/* FX */
+.particles { position: fixed; inset: 0; background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 40px 40px; z-index: -1; }
+.liquid-panel { margin: 40px 20px; padding: 40px 25px; border-radius: 35px; background: var(--glass-bg); border: 1px solid var(--glass-border); text-align: center; }
+.btn-neon { width: 100%; padding: 15px; background: transparent; border: 2px solid var(--neon-blue); border-radius: 12px; color: var(--neon-blue); font-weight: 800; cursor: pointer; margin-top: 10px; }

@@ -36,11 +36,7 @@
 
         <main id="main-content" class="hidden">
             <div id="screen-container">
-                <div id="welcome-msg" class="float-anim">
-                    <i class="fa-solid fa-shield-halved neon-blue"></i>
-                    <p>SYSTEM READY</p>
                 </div>
-            </div>
         </main>
 
         <section id="atc-game-screen" class="hidden">
@@ -59,18 +55,14 @@
             </div>
 
             <div class="game-body">
-                <div class="target-container">
-                    <div class="target-card float-anim">
-                        <span id="atc-label">OBJECTIVE</span>
-                        <h1 id="atc-current-target">1</h1>
-                    </div>
+                <div class="target-card float-anim">
+                    <span id="atc-label">OBJECTIVE</span>
+                    <h1 id="atc-current-target">1</h1>
                 </div>
-                <div class="round-history">
-                    <div class="slot-container">
-                        <div class="slot" id="slot-1">-</div>
-                        <div class="slot" id="slot-2">-</div>
-                        <div class="slot" id="slot-3">-</div>
-                    </div>
+                <div class="slot-container">
+                    <div class="slot" id="slot-1">-</div>
+                    <div class="slot" id="slot-2">-</div>
+                    <div class="slot" id="slot-3">-</div>
                 </div>
                 <div id="dartboard-svg-container"></div>
             </div>
@@ -95,12 +87,8 @@
                     </button>
                 </div>
                 <div class="action-grid">
-                    <button class="action-btn undo" onclick="undoLastAction()">
-                        <i class="fa-solid fa-backward-step"></i> UNDO
-                    </button>
-                    <button class="action-btn next" onclick="confirmNextRound()">
-                        CONFIRM ROUND <i class="fa-solid fa-chevron-right"></i>
-                    </button>
+                    <button class="action-btn undo" onclick="undoLastAction()">UNDO</button>
+                    <button class="action-btn next" onclick="confirmNextRound()">CONFIRM</button>
                 </div>
             </div>
         </section>
@@ -108,7 +96,7 @@
         <nav class="bottom-nav hidden" id="main-nav">
             <div class="nav-item" onclick="showScreen('quickplay-screen')"><i class="fa-solid fa-bolt"></i><span>Quickplay</span></div>
             <div class="nav-item" onclick="showScreen('challenge-screen')"><i class="fa-solid fa-trophy"></i><span>Challenge</span></div>
-            <div class="nav-item active" onclick="showScreen('training-screen')"><i class="fa-solid fa-dumbbell"></i><span>Training</span></div>
+            <div class="nav-item" onclick="showScreen('training-screen')"><i class="fa-solid fa-dumbbell"></i><span>Training</span></div>
             <div class="nav-item" onclick="showScreen('stats-screen')"><i class="fa-solid fa-chart-line"></i><span>Stats</span></div>
         </nav>
     </div>
