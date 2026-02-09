@@ -20,29 +20,28 @@ const Dartboard = {
         const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
         svg.setAttribute("viewBox", `0 0 ${size} ${size}`);
         
+        // Schwarzer Hintergrund-Ring hinter den Zahlen
         const boardBg = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        boardBg.setAttribute("cx", center);
-        boardBg.setAttribute("cy", center);
-        boardBg.setAttribute("r", 160);
-        boardBg.setAttribute("fill", "#0a0a0a");
+        boardBg.setAttribute("cx", center); boardBg.setAttribute("cy", center);
+        boardBg.setAttribute("r", 160); boardBg.setAttribute("fill", "#0a0a0a");
         svg.appendChild(boardBg);
 
         this.numbers.forEach((num, i) => {
             const angle = (i * 18) - 90 - 9; 
             const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
-            group.setAttribute("class", "sector"); 
+            
+            // Logik: 20 (Index 0) muss "even-sec" sein für Schwarz/Rot
+            const typeClass = (i % 2 === 0) ? "even-sec" : "odd-sec";
+            group.setAttribute("class", `sector ${typeClass}`);
             group.setAttribute("id", `target-path-${num}`);
 
-            // Double Segment
+            // Ringe und Flächen zeichnen
             group.appendChild(this.createArc(center, center, this.radii.doubleInner, this.radii.double, angle, angle + 18, "slice double-ring"));
-            // Outer Single
             group.appendChild(this.createArc(center, center, this.radii.triple, this.radii.doubleInner, angle, angle + 18, "slice single-outer"));
-            // Triple Segment
             group.appendChild(this.createArc(center, center, this.radii.tripleInner, this.radii.triple, angle, angle + 18, "slice triple-ring"));
-            // Inner Single
             group.appendChild(this.createArc(center, center, this.radii.outerBull, this.radii.tripleInner, angle, angle + 18, "slice single-inner"));
 
-            // Overlay für Highlighting
+            // Unsichtbares Overlay für das Leuchten
             const overlay = this.createArc(center, center, this.radii.outerBull, this.radii.double, angle, angle + 18, "highlight-overlay");
             overlay.setAttribute("fill", "transparent");
             group.appendChild(overlay);
@@ -100,12 +99,9 @@ const Dartboard = {
     renderNumber(svg, center, num, angle) {
         const pos = this.polarToCartesian(center, center, this.radii.numbers, angle);
         const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        txt.setAttribute("x", pos.x);
-        txt.setAttribute("y", pos.y);
-        txt.setAttribute("text-anchor", "middle");
-        txt.setAttribute("dominant-baseline", "middle");
-        txt.setAttribute("fill", "white");
-        txt.setAttribute("style", "font-size: 14px; font-weight: bold; opacity: 0.8; font-family: sans-serif;");
+        txt.setAttribute("x", pos.x); txt.setAttribute("y", pos.y);
+        txt.setAttribute("text-anchor", "middle"); txt.setAttribute("dominant-baseline", "middle");
+        txt.setAttribute("fill", "white"); txt.setAttribute("style", "font-size: 14px;");
         txt.textContent = num;
         svg.appendChild(txt);
     },

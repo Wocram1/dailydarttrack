@@ -7,7 +7,7 @@
     --text: #ffffff;
 }
 
-/* GRUND-LAYOUT FIXES */
+/* GRUND-LAYOUT */
 .hidden { display: none !important; }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -31,21 +31,17 @@ section, main { width: 100%; height: 100%; position: absolute; top: 0; left: 0; 
 .nav-item i { font-size: 1.4rem; display: block; margin-bottom: 4px; }
 .nav-item.active { color: var(--neon-blue); transform: translateY(-5px); }
 
-/* GRID FÜR TRAINING & SPIELE */
+/* GRID & CARDS */
 #main-content { padding: 20px 20px 100px 20px; }
 .game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
 .game-card { 
     background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; 
-    padding: 25px 15px; text-align: center; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer; 
-}
-.game-card:active, .game-card:hover { 
-    transform: scale(1.05); background: rgba(0, 212, 255, 0.1); 
-    border-color: var(--neon-blue); box-shadow: 0 0 20px rgba(0, 212, 255, 0.2); 
+    padding: 25px 15px; text-align: center; transition: all 0.3s; cursor: pointer; 
 }
 .game-card i { font-size: 2.2rem; color: var(--neon-blue); margin-bottom: 12px; display: block; }
-.game-card span { font-weight: bold; font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase; }
+.game-card span { font-weight: bold; font-size: 0.85rem; text-transform: uppercase; }
 
-/* SCORING INTERFACE */
+/* SCORING SCREEN */
 #atc-game-screen { background: #050508; z-index: 2000; display: flex; flex-direction: column; overflow: hidden; }
 .game-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; padding: 20px; padding-bottom: 240px; }
 .target-card h1 { font-size: 5rem; margin: 0; color: var(--neon-gold); text-shadow: 0 0 20px rgba(255, 214, 10, 0.4); }
@@ -56,57 +52,40 @@ section, main { width: 100%; height: 100%; position: absolute; top: 0; left: 0; 
     border-radius: 35px 35px 0 0; border-top: 1px solid var(--glass-border); z-index: 2100;
 }
 .score-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-.score-tile { 
-    background: var(--glass); border: 1px solid var(--glass-border); border-radius: 15px; 
-    padding: 12px; color: white; transition: 0.2s; cursor: pointer; 
-}
-.score-tile:active { transform: scale(0.95); background: rgba(255,255,255,0.1); }
+.score-tile { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 15px; padding: 12px; color: white; text-align: center; cursor: pointer; }
 .score-tile.double { border-color: #ff4757; color: #ff4757; }
 .score-tile.triple { border-color: var(--neon-gold); color: var(--neon-gold); }
-.score-tile.miss { grid-column: span 2; opacity: 0.6; }
-.score-tile .multiplier { font-size: 0.6rem; display: block; opacity: 0.7; }
-.score-tile .val { font-size: 1.4rem; font-weight: bold; }
 
-.action-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; }
-.action-btn { border: none; border-radius: 12px; padding: 15px; font-weight: bold; color: white; cursor: pointer; }
-.action-btn.undo { background: rgba(255,255,255,0.1); }
-.action-btn.next { background: var(--neon-blue); }
-
-/* DARTBOARD STYLING */
+/* --- DARTBOARD FARBEN (PRO STANDARD) --- */
 #dartboard-svg-container { width: 280px; height: 280px; margin: 0 auto; }
 
-.single-outer, .single-inner { fill: #1a1a1a; stroke: #333; stroke-width: 0.5; }
-/* Helle Felder (weiß/beige) bei jedem zweiten Segment */
-.sector:nth-of-type(even) .single-outer, 
-.sector:nth-of-type(even) .single-inner { fill: #ddd !important; }
+/* Dunkle Segmente (z.B. 20) -> Schwarzes Feld, Rote Ringe */
+.even-sec .single-outer, .even-sec .single-inner { fill: #1a1a1a !important; stroke: #333; }
+.even-sec .double-ring, .even-sec .triple-ring { fill: #e74c3c !important; stroke: #222; }
 
-/* Ringe (Double & Triple) Standardfarbe Grün */
-.double-ring, .triple-ring { fill: #2ecc71 !important; stroke: #222; } 
-/* Ringe bei jedem zweiten Segment Rot */
-.sector:nth-of-type(even) .double-ring, 
-.sector:nth-of-type(even) .triple-ring { fill: #e74c3c !important; }
+/* Helle Segmente (z.B. 1) -> Weißes Feld, Grüne Ringe */
+.odd-sec .single-outer, .odd-sec .single-inner { fill: #eeeeee !important; stroke: #ccc; }
+.odd-sec .double-ring, .odd-sec .triple-ring { fill: #2ecc71 !important; stroke: #222; }
 
 /* Bullseyes */
 .outer-bull { fill: #2ecc71 !important; stroke: #222; }
 .bullseye { fill: #e74c3c !important; stroke: #222; }
 
-/* Das Leuchten des Ziels */
+/* Aktives Ziel Neon-Highlight */
 .active-target .slice, 
 .active-target.outer-bull, 
 .active-target.bullseye,
 .active-target .highlight-overlay {
     fill: var(--neon-blue) !important;
-    filter: drop-shadow(0 0 12px var(--neon-blue));
-    opacity: 1 !important;
-    transition: all 0.3s ease;
+    filter: drop-shadow(0 0 15px var(--neon-blue));
+    opacity: 0. !important;
 }
 
-text { pointer-events: none; user-select: none; }
+text { pointer-events: none; user-select: none; font-weight: bold; }
 
-.slot-container { display: flex; gap: 10px; margin-bottom: 10px; }
-.slot { width: 55px; height: 45px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--neon-blue); }
+/* XP & STATS */
+.xp-card { background: var(--glass-bg); padding: 25px; border-radius: 25px; border: 1px solid var(--glass-border); margin-bottom: 25px; }
+.xp-bar-bg { background: rgba(255,255,255,0.05); height: 12px; border-radius: 6px; margin: 15px 0; overflow: hidden; }
+.xp-bar-fill { background: linear-gradient(90deg, var(--neon-blue), #00ff88); height: 100%; box-shadow: 0 0 10px var(--neon-blue); }
 
-/* FX */
-.particles { position: fixed; inset: 0; background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 40px 40px; z-index: -1; }
-.liquid-panel { margin: 40px 20px; padding: 40px 25px; border-radius: 35px; background: var(--glass-bg); border: 1px solid var(--glass-border); text-align: center; }
-.btn-neon { width: 100%; padding: 15px; background: transparent; border: 2px solid var(--neon-blue); border-radius: 12px; color: var(--neon-blue); font-weight: 800; cursor: pointer; margin-top: 10px; }
+.btn-neon { width: 100%; padding: 15px; background: transparent; border: 2px solid var(--neon-blue); border-radius: 12px; color: var(--neon-blue); font-weight: bold; cursor: pointer; }
