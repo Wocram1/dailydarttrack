@@ -1,13 +1,12 @@
 const Dartboard = {
-    // Definierte Radien für ein sauberes Verhältnis
     radii: {
-        double: 130,      // Äußerer Rand des Double-Rings
-        doubleInner: 120, // Innerer Rand des Double-Rings
-        triple: 85,       // Äußerer Rand des Triple-Rings
-        tripleInner: 75,  // Innerer Rand des Triple-Rings
-        outerBull: 15,    // Der grüne 25er Ring
-        bullseye: 7,      // Das rote Bullseye
-        numbers: 145      // Wo die Zahlen stehen
+        double: 130,      
+        doubleInner: 120, 
+        triple: 85,       
+        tripleInner: 75,  
+        outerBull: 15,    
+        bullseye: 7,      
+        numbers: 145      
     },
     numbers: [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5],
 
@@ -16,12 +15,11 @@ const Dartboard = {
         if (!container) return;
         container.innerHTML = '';
 
-        const size = 320; // Etwas mehr Platz für die Zahlen
+        const size = 320; 
         const center = size / 2;
         const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
         svg.setAttribute("viewBox", `0 0 ${size} ${size}`);
         
-        // Hintergrund Kreis
         const boardBg = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         boardBg.setAttribute("cx", center);
         boardBg.setAttribute("cy", center);
@@ -30,24 +28,21 @@ const Dartboard = {
         svg.appendChild(boardBg);
 
         this.numbers.forEach((num, i) => {
-            const angle = (i * 18) - 90 - 9; // Start bei 12 Uhr
+            const angle = (i * 18) - 90 - 9; 
             const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
-            group.setAttribute("class", `sector sec-${num}`);
+            group.setAttribute("class", "sector"); 
             group.setAttribute("id", `target-path-${num}`);
 
-            // Double Segment (Ganz außen)
+            // Double Segment
             group.appendChild(this.createArc(center, center, this.radii.doubleInner, this.radii.double, angle, angle + 18, "slice double-ring"));
-            
-            // Outer Single (Zwischen Double und Triple)
+            // Outer Single
             group.appendChild(this.createArc(center, center, this.radii.triple, this.radii.doubleInner, angle, angle + 18, "slice single-outer"));
-            
             // Triple Segment
             group.appendChild(this.createArc(center, center, this.radii.tripleInner, this.radii.triple, angle, angle + 18, "slice triple-ring"));
-            
-            // Inner Single (Zwischen Triple und Bull)
+            // Inner Single
             group.appendChild(this.createArc(center, center, this.radii.outerBull, this.radii.tripleInner, angle, angle + 18, "slice single-inner"));
 
-            // Unsichtbares Overlay für das gesamte Segment (erleichtert das Highlighting)
+            // Overlay für Highlighting
             const overlay = this.createArc(center, center, this.radii.outerBull, this.radii.double, angle, angle + 18, "highlight-overlay");
             overlay.setAttribute("fill", "transparent");
             group.appendChild(overlay);
@@ -110,7 +105,7 @@ const Dartboard = {
         txt.setAttribute("text-anchor", "middle");
         txt.setAttribute("dominant-baseline", "middle");
         txt.setAttribute("fill", "white");
-        txt.setAttribute("style", "font-size: 12px; font-weight: bold; opacity: 0.8; font-family: sans-serif;");
+        txt.setAttribute("style", "font-size: 14px; font-weight: bold; opacity: 0.8; font-family: sans-serif;");
         txt.textContent = num;
         svg.appendChild(txt);
     },

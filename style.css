@@ -72,47 +72,25 @@ section, main { width: 100%; height: 100%; position: absolute; top: 0; left: 0; 
 .action-btn.undo { background: rgba(255,255,255,0.1); }
 .action-btn.next { background: var(--neon-blue); }
 
-/* DARTBOARD SCALING */
+/* DARTBOARD STYLING */
 #dartboard-svg-container { width: 280px; height: 280px; margin: 0 auto; }
-.slot-container { display: flex; gap: 10px; margin-bottom: 10px; }
-.slot { width: 55px; height: 45px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--neon-blue); }
 
-/* FX */
-.particles { position: fixed; inset: 0; background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 40px 40px; z-index: -1; }
-.liquid-panel { margin: 40px 20px; padding: 40px 25px; border-radius: 35px; background: var(--glass-bg); border: 1px solid var(--glass-border); text-align: center; }
-.btn-neon { width: 100%; padding: 15px; background: transparent; border: 2px solid var(--neon-blue); border-radius: 12px; color: var(--neon-blue); font-weight: 800; cursor: pointer; margin-top: 10px; }
-/* ... dein bisheriger Code ... */
+.single-outer, .single-inner { fill: #1a1a1a; stroke: #333; stroke-width: 0.5; }
+/* Helle Felder (weiß/beige) bei jedem zweiten Segment */
+.sector:nth-of-type(even) .single-outer, 
+.sector:nth-of-type(even) .single-inner { fill: #ddd !important; }
 
-/* --- DARTBOARD OPTIK --- */
-.single-outer, .single-inner { 
-    fill: #222; 
-    stroke: #444; 
-    stroke-width: 0.5; 
-}
+/* Ringe (Double & Triple) Standardfarbe Grün */
+.double-ring, .triple-ring { fill: #2ecc71 !important; stroke: #222; } 
+/* Ringe bei jedem zweiten Segment Rot */
+.sector:nth-of-type(even) .double-ring, 
+.sector:nth-of-type(even) .triple-ring { fill: #e74c3c !important; }
 
-/* Helle Felder (weiß/beige) */
-.sector:nth-child(even) .single-outer, 
-.sector:nth-child(even) .single-inner { 
-    fill: #eee; 
-}
+/* Bullseyes */
+.outer-bull { fill: #2ecc71 !important; stroke: #222; }
+.bullseye { fill: #e74c3c !important; stroke: #222; }
 
-/* Klassische Ringe (Grün/Rot) */
-.triple-ring, .double-ring { 
-    fill: #2ecc71; 
-    stroke: #333; 
-}
-
-/* Jedes zweite Segment hat rote Ringe */
-.sector:nth-child(even) .triple-ring, 
-.sector:nth-child(even) .double-ring { 
-    fill: #e74c3c; 
-}
-
-/* Bullseye */
-.outer-bull { fill: #2ecc71; stroke: #333; }
-.bullseye { fill: #e74c3c; stroke: #333; }
-
-/* DAS LEUCHTEN: Wenn ein Feld das Ziel ist */
+/* Das Leuchten des Ziels */
 .active-target .slice, 
 .active-target.outer-bull, 
 .active-target.bullseye,
@@ -123,29 +101,12 @@ section, main { width: 100%; height: 100%; position: absolute; top: 0; left: 0; 
     transition: all 0.3s ease;
 }
 
-/* Zahlen auf dem Board */
-text {
-    pointer-events: none; /* Verhindert, dass man die Zahl statt das Feld anklickt */
-    user-select: none;
-}
-/* Grundfarben Segmente */
-.single-outer, .single-inner { fill: #1a1a1a; stroke: #333; stroke-width: 0.5; }
-.sector:nth-child(even) .single-outer, .sector:nth-child(even) .single-inner { fill: #ddd; }
+text { pointer-events: none; user-select: none; }
 
-/* Ringe */
-.double-ring, .triple-ring { fill: #2ecc71; stroke: #222; } /* Grün */
-.sector:nth-child(even) .double-ring, .sector:nth-child(even) .triple-ring { fill: #e74c3c; } /* Rot */
+.slot-container { display: flex; gap: 10px; margin-bottom: 10px; }
+.slot { width: 55px; height: 45px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--neon-blue); }
 
-/* Bullseyes */
-.outer-bull { fill: #2ecc71; }
-.bullseye { fill: #e74c3c; }
-
-/* Das Leuchten des Ziels */
-.active-target .slice, 
-.active-target.outer-bull, 
-.active-target.bullseye,
-.active-target .highlight-overlay {
-    fill: var(--neon-blue) !important;
-    filter: drop-shadow(0 0 10px var(--neon-blue));
-    opacity: 1 !important;
-}
+/* FX */
+.particles { position: fixed; inset: 0; background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 40px 40px; z-index: -1; }
+.liquid-panel { margin: 40px 20px; padding: 40px 25px; border-radius: 35px; background: var(--glass-bg); border: 1px solid var(--glass-border); text-align: center; }
+.btn-neon { width: 100%; padding: 15px; background: transparent; border: 2px solid var(--neon-blue); border-radius: 12px; color: var(--neon-blue); font-weight: 800; cursor: pointer; margin-top: 10px; }
