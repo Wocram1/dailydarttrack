@@ -8,15 +8,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-
     <div class="app-container">
-        
         <section id="login-screen" class="active">
             <div class="glass-panel">
-                <div class="logo-area">
-                    <i class="fa-solid fa-crosshairs"></i>
-                    <h1>Dart Tracker<span>PRO</span></h1>
-                </div>
+                <div class="logo-area"><i class="fa-solid fa-crosshairs"></i><h1>Dart Tracker<span>PRO</span></h1></div>
                 <div class="input-group">
                     <input type="text" id="username" placeholder="Benutzername">
                     <input type="password" id="password" placeholder="Passwort">
@@ -29,110 +24,80 @@
 
         <section id="dashboard-screen" class="hidden">
             <header class="user-header">
-                <div class="user-info">
-                    <h2 id="display-username">Spieler</h2>
-                    <span id="display-level" class="level-badge">Lvl 1</span>
-                </div>
-                <div class="xp-container">
-                    <div class="xp-info"><span id="xp-text">0 / 1000 XP</span></div>
-                    <div class="xp-bar-bg"><div class="xp-bar-fill" id="xp-bar"></div></div>
-                </div>
+                <div class="user-info"><h2 id="display-username">Spieler</h2><span id="display-level" class="level-badge">Lvl 1</span></div>
+                <div class="xp-container"><div class="xp-bar-bg"><div class="xp-bar-fill" id="xp-bar"></div></div></div>
             </header>
-            <div class="menu-grid">
-                <div class="menu-card active" onclick="showCategoryMenu()">
-                    <i class="fa-solid fa-trophy"></i>
-                    <h3>Games</h3>
+            <div class="main-menu-scroll">
+                <h3 class="section-title">Training</h3>
+                <div class="category-stack">
+                    <div class="cat-card" onclick="showSubGameMenu('boardControl')">
+                        <div class="cat-icon blue"><i class="fa-solid fa-bullseye"></i></div>
+                        <div class="cat-info"><h3>Board Control</h3><p>ATC, Shanghai, Bermuda</p></div>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </div>
+                    <div class="cat-card" onclick="showSubGameMenu('finishing')">
+                        <div class="cat-icon green"><i class="fa-solid fa-check-double"></i></div>
+                        <div class="cat-info"><h3>Finishing</h3><p>9 Darts DO</p></div>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </div>
+                    <div class="cat-card" onclick="showSubGameMenu('scoring')">
+                        <div class="cat-icon red"><i class="fa-solid fa-fire"></i></div>
+                        <div class="cat-info"><h3>Scoring</h3><p>XX Darts at XX</p></div>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </div>
                 </div>
-                <div class="menu-card disabled"><i class="fa-solid fa-chart-line"></i><h3>Stats</h3></div>
-                <div class="menu-card active" onclick="startQuickplay()">
-                    <i class="fa-solid fa-play"></i>
-                    <h3>Quickplay</h3>
-                    <p>501 S-Out</p>
-                </div>
-            </div>
-        </section>
-
-        <section id="category-screen" class="hidden">
-            <div class="screen-header">
-                <button class="back-btn" onclick="showScreen('dashboard-screen')"><i class="fa-solid fa-chevron-left"></i></button>
-                <h2>Kategorien</h2>
-            </div>
-            <div class="category-grid">
-                <button class="cat-btn active" onclick="showSubGameMenu('boardControl')">Board Control</button>
-                <button class="cat-btn disabled">Finishing</button>
-                <button class="cat-btn disabled">Scoring</button>
-                <button class="cat-btn disabled">Warmup</button>
-                <button class="cat-btn disabled">X01</button>
             </div>
         </section>
 
         <section id="subgame-screen" class="hidden">
             <div class="screen-header">
-                <button class="back-btn" onclick="showScreen('category-screen')"><i class="fa-solid fa-chevron-left"></i></button>
-                <h2 id="subgame-title">Board Control</h2>
+                <button class="back-btn" onclick="showScreen('dashboard-screen')"><i class="fa-solid fa-chevron-left"></i></button>
+                <h2 id="subgame-title">Spiele</h2>
             </div>
             <div class="game-list" id="game-list"></div>
-        </section>
-
-        <section id="level-select-screen" class="hidden">
-            <div class="screen-header">
-                <button class="back-btn" onclick="showScreen('subgame-screen')"><i class="fa-solid fa-chevron-left"></i></button>
-                <h2>Schwierigkeit</h2>
-            </div>
-            <div class="level-grid" id="level-grid"></div>
         </section>
 
         <section id="atc-game-screen" class="hidden">
             <div class="game-header">
                 <button class="exit-btn" onclick="exitGame()"><i class="fa-solid fa-xmark"></i></button>
-                <div class="round-counter">Aufnahme: <span id="atc-rounds">1</span></div>
-                <div class="heart-container" id="atc-hearts"></div>
+                <div class="round-counter"><span id="atc-mode-name">Spiel</span> | Aufn: <span id="atc-rounds">1</span></div>
                 <div class="dart-indicators">
                     <i class="fa-solid fa-location-arrow dart-icon" id="atc-dart-1"></i>
                     <i class="fa-solid fa-location-arrow dart-icon" id="atc-dart-2"></i>
                     <i class="fa-solid fa-location-arrow dart-icon" id="atc-dart-3"></i>
                 </div>
             </div>
-
             <div class="atc-scoreboard">
-                <div class="target-display">
-                    <span>ZIEL</span>
-                    <h1 id="atc-current-target">1</h1>
-                </div>
-
+                <div class="target-display"><span id="atc-label">ZIEL</span><h1 id="atc-current-target">1</h1></div>
                 <div class="current-round-display">
                     <div class="dart-score-slot" id="slot-1">-</div>
                     <div class="dart-score-slot" id="slot-2">-</div>
                     <div class="dart-score-slot" id="slot-3">-</div>
                 </div>
-
                 <div id="dartboard-svg-container"></div>
             </div>
-
             <div class="atc-controls">
                 <div class="atc-input-grid">
-                    <button class="atc-btn hit-btn" onclick="atcHit('S')">S-<span class="target-val">1</span></button>
-                    <button class="atc-btn hit-btn" onclick="atcHit('D')">D-<span class="target-val">1</span></button>
-                    <button class="atc-btn hit-btn" onclick="atcHit('T')">T-<span class="target-val">1</span></button>
-                    <button class="atc-btn miss-btn" onclick="atcHit('MISS')">MISS</button>
-                    <button class="atc-btn undo-btn" onclick="undoAtc()"><i class="fa-solid fa-rotate-left"></i></button>
-                    <button class="atc-btn next-round-btn" onclick="nextAtcRound()">NÄCHSTE RUNDE</button>
+                    <button class="atc-btn hit-btn" onclick="processInput('S')">S-<span class="target-val">?</span></button>
+                    <button class="atc-btn hit-btn" onclick="processInput('D')">D-<span class="target-val">?</span></button>
+                    <button class="atc-btn hit-btn" onclick="processInput('T')">T-<span class="target-val">?</span></button>
+                    <button class="atc-btn miss-btn" onclick="processInput('MISS')">MISS</button>
+                    <button class="atc-btn undo-btn" onclick="undoLastAction()"><i class="fa-solid fa-rotate-left"></i></button>
+                    <button class="atc-btn next-round-btn" onclick="confirmNextRound()">NÄCHSTE RUNDE</button>
                 </div>
             </div>
         </section>
 
-        <section id="game-screen" class="hidden">
-            <div class="game-header">
-                <button class="exit-btn" onclick="exitGame()"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="score-display">
-                <h1 id="current-score">501</h1>
-                <div id="current-input-display">0</div>
-            </div>
-        </section>
+        <nav class="bottom-nav hidden" id="main-nav">
+            <div class="nav-item active" onclick="showScreen('dashboard-screen')"><i class="fa-solid fa-house"></i><span>Home</span></div>
+            <div class="nav-item" onclick="alert('Quickplay 501 folgt')"><div class="play-fab"><i class="fa-solid fa-play"></i></div></div>
+            <div class="nav-item"><i class="fa-solid fa-chart-simple"></i><span>Stats</span></div>
+        </nav>
     </div>
 
     <script src="boardControl.js"></script>
+    <script src="finishing.js"></script>
+    <script src="scoring.js"></script>
     <script src="dartboard.js"></script>
     <script src="script.js"></script>
 </body>
