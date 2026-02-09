@@ -81,3 +81,50 @@ section, main { width: 100%; height: 100%; position: absolute; top: 0; left: 0; 
 .particles { position: fixed; inset: 0; background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 40px 40px; z-index: -1; }
 .liquid-panel { margin: 40px 20px; padding: 40px 25px; border-radius: 35px; background: var(--glass-bg); border: 1px solid var(--glass-border); text-align: center; }
 .btn-neon { width: 100%; padding: 15px; background: transparent; border: 2px solid var(--neon-blue); border-radius: 12px; color: var(--neon-blue); font-weight: 800; cursor: pointer; margin-top: 10px; }
+/* ... dein bisheriger Code ... */
+
+/* --- DARTBOARD OPTIK --- */
+.single-outer, .single-inner { 
+    fill: #222; 
+    stroke: #444; 
+    stroke-width: 0.5; 
+}
+
+/* Helle Felder (weiß/beige) */
+.sector:nth-child(even) .single-outer, 
+.sector:nth-child(even) .single-inner { 
+    fill: #eee; 
+}
+
+/* Klassische Ringe (Grün/Rot) */
+.triple-ring, .double-ring { 
+    fill: #2ecc71; 
+    stroke: #333; 
+}
+
+/* Jedes zweite Segment hat rote Ringe */
+.sector:nth-child(even) .triple-ring, 
+.sector:nth-child(even) .double-ring { 
+    fill: #e74c3c; 
+}
+
+/* Bullseye */
+.outer-bull { fill: #2ecc71; stroke: #333; }
+.bullseye { fill: #e74c3c; stroke: #333; }
+
+/* DAS LEUCHTEN: Wenn ein Feld das Ziel ist */
+.active-target .slice, 
+.active-target.outer-bull, 
+.active-target.bullseye,
+.active-target .highlight-overlay {
+    fill: var(--neon-blue) !important;
+    filter: drop-shadow(0 0 12px var(--neon-blue));
+    opacity: 1 !important;
+    transition: all 0.3s ease;
+}
+
+/* Zahlen auf dem Board */
+text {
+    pointer-events: none; /* Verhindert, dass man die Zahl statt das Feld anklickt */
+    user-select: none;
+}
