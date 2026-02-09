@@ -128,3 +128,24 @@ text {
     pointer-events: none; /* Verhindert, dass man die Zahl statt das Feld anklickt */
     user-select: none;
 }
+/* Grundfarben Segmente */
+.single-outer, .single-inner { fill: #1a1a1a; stroke: #333; stroke-width: 0.5; }
+.sector:nth-child(even) .single-outer, .sector:nth-child(even) .single-inner { fill: #ddd; }
+
+/* Ringe */
+.double-ring, .triple-ring { fill: #2ecc71; stroke: #222; } /* Grün */
+.sector:nth-child(even) .double-ring, .sector:nth-child(even) .triple-ring { fill: #e74c3c; } /* Rot */
+
+/* Bullseyes */
+.outer-bull { fill: #2ecc71; }
+.bullseye { fill: #e74c3c; }
+
+/* Das Leuchten des Ziels */
+.active-target .slice, 
+.active-target.outer-bull, 
+.active-target.bullseye,
+.active-target .highlight-overlay {
+    fill: var(--neon-blue) !important;
+    filter: drop-shadow(0 0 10px var(--neon-blue));
+    opacity: 1 !important;
+}
