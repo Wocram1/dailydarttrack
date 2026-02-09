@@ -13,18 +13,30 @@
         <section id="login-screen" class="active">
             <div class="glass-panel">
                 <div class="logo-area"><i class="fa-solid fa-crosshairs"></i><h1>Dart Tracker<span>PRO</span></h1></div>
-                <div class="input-group">
-                    <input type="text" id="username" placeholder="Benutzername">
-                    <input type="password" id="password" placeholder="Passwort">
+                
+                <div id="auth-container">
+                    <div class="input-group">
+                        <input type="text" id="username" placeholder="Benutzername">
+                        <input type="password" id="password" placeholder="Passwort">
+                        <input type="text" id="invite-code" class="hidden" placeholder="Invite Code (123)">
+                    </div>
+
+                    <button id="login-btn" class="btn-primary" onclick="login()">Login</button>
+                    <button id="signup-btn" class="btn-primary hidden" onclick="signup()">Registrieren</button>
+                    
+                    <p class="auth-toggle">
+                        <span id="toggle-text">Noch keinen Account?</span> 
+                        <a href="javascript:void(0)" onclick="toggleAuthMode()" id="toggle-link">Jetzt registrieren</a>
+                    </p>
                 </div>
-                <button class="btn-primary" onclick="login()">Login</button>
             </div>
         </section>
 
         <section id="training-screen" class="hidden">
-            <header class="section-header"><h2>Training</h2></header>
-            <div id="category-list" class="category-stack">
-                </div>
+            <header class="section-header">
+                <h2 id="display-username">Training</h2>
+            </header>
+            <div id="category-list" class="category-stack"></div>
             <div id="game-selection-list" class="category-stack hidden">
                 <button class="back-btn-small" onclick="backToCategories()"><i class="fa-solid fa-chevron-left"></i> Zurück</button>
                 <div id="games-container"></div>
@@ -71,7 +83,8 @@
             </div>
         </section>
 
-        <section id="stats-screen" class="hidden"><div class="placeholder-msg">Statistiken folgen...</div></section>
+        <section id="stats-screen" class="hidden"></section>
+        
         <section id="challenge-screen" class="hidden"><div class="placeholder-msg">Challenges folgen...</div></section>
         <section id="quickplay-screen" class="hidden"><div class="placeholder-msg">501 Quickplay...</div></section>
 
